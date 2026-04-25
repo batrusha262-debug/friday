@@ -3,6 +3,7 @@ package cfg
 import "os"
 
 type Config struct {
+	HTTPAddr string
 	Postgres PostgresConfig
 }
 
@@ -16,6 +17,7 @@ type PostgresConfig struct {
 
 func Load() Config {
 	return Config{
+		HTTPAddr: getenv("HTTP_ADDR", ":8080"),
 		Postgres: PostgresConfig{
 			Host:     getenv("POSTGRES_HOST", "localhost"),
 			Port:     getenv("POSTGRES_PORT", "5432"),

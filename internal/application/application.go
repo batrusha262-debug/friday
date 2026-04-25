@@ -2,26 +2,34 @@ package application
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/go-chi/chi/v5"
+
+	"friday/internal/pack/infrastructure/persistence"
+	packserver "friday/internal/pack/server"
+	"friday/internal/pack/domain/service"
 	"friday/pkg/cfg"
 	"friday/pkg/contextx"
 	"friday/pkg/postgres"
-	"log/slog"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var logger *slog.Logger = contextx.DefaultLogger
+var logger = contextx.DefaultLogger
 
-type Application struct {
-	db *pgxpool.Pool
-}
+type Application struct{}
 
 func New() *Application {
 	return &Application{}
 }
 
 func (app *Application) Run() error {
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
 	config := cfg.Load()
 
@@ -37,8 +45,31 @@ func (app *Application) Run() error {
 	}
 	defer db.Close()
 
-	app.db = db
 	logger.Info("connected to postgres")
 
-	return nil
+	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db)))
+
+	r := chi.NewRouter()
+	h.Register(r)
+
+	httpServer := &http.Server{
+		Addr:    config.HTTPAddr,
+		Handler: r,
+	}
+
+	logger.Info("starting server", "addr", config.HTTPAddr)
+
+	errCh := make(chan error, 1)
+	go func() {
+		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			errCh <- err
+		}
+	}()
+
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("http server: %w", err)
+	case <-ctx.Done():
+		return httpServer.Shutdown(context.Background())
+	}
 }

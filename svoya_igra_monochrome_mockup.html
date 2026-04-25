@@ -1,0 +1,273 @@
+<h2 class="sr-only">Монохромные макеты Telegram Mini App «Своя игра» — минималистичный дизайн</h2>
+<style>
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:0 2px 12px;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .stab{padding:6px 12px;border:0.5px solid #ddd;background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:#999;white-space:nowrap;font-family:var(--font-sans);}
+  .stab.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a;font-weight:500;}
+  .phone{width:300px;background:#f5f5f5;border-radius:28px;border:7px solid #1a1a1a;margin:0 auto;overflow:hidden;}
+  .tgh{background:#1a1a1a;color:#fff;padding:11px 14px;display:flex;align-items:center;gap:10px;font-weight:500;font-size:14px;font-family:var(--font-sans);}
+  .scr{display:none;}
+  .scr.on{display:block;}
+  .wcard{background:#fff;margin:8px;border-radius:12px;padding:12px;}
+  .tinput{width:100%;border:0.5px solid #e0e0e0;border-radius:8px;padding:9px 11px;font-size:13px;background:#fff;box-sizing:border-box;margin-bottom:8px;font-family:var(--font-sans);resize:none;color:#1a1a1a;}
+  .tinput:focus{outline:none;border-color:#999;}
+  .tlabel{font-size:11px;color:#999;margin-bottom:3px;display:block;font-family:var(--font-sans);}
+  .tbtn{background:#1a1a1a;color:#fff;border:none;border-radius:10px;padding:13px;width:100%;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);}
+  .tbtn-ghost{background:#fff;color:#1a1a1a;border:0.5px solid #e0e0e0;border-radius:10px;padding:12px;width:100%;font-size:14px;cursor:pointer;font-family:var(--font-sans);}
+  .pill-row{display:grid;gap:5px;margin-bottom:8px;}
+  .ppill{background:#f5f5f5;color:#666;border:0.5px solid #e0e0e0;border-radius:8px;padding:7px 4px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;font-family:var(--font-sans);}
+  .ppill.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+  .qcell{background:#1a1a1a;color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:12px;cursor:pointer;height:42px;text-align:center;padding:3px;font-family:var(--font-sans);}
+  .qcell.cat{background:#333;font-size:9px;height:34px;line-height:1.2;}
+  .qcell.used{background:#e8e8e8;color:#bbb;cursor:default;}
+  .divider{height:0.5px;background:#f0f0f0;margin:0 12px;}
+  .badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:var(--font-sans);}
+</style>
+
+<div style="padding:1rem 0;">
+  <div class="tabs">
+    <button class="stab on" onclick="show(0)">Главная</button>
+    <button class="stab" onclick="show(1)">Поле</button>
+    <button class="stab" onclick="show(2)">Вопрос</button>
+    <button class="stab" onclick="show(3)">+ Игра</button>
+    <button class="stab" onclick="show(4)">+ Вопрос</button>
+  </div>
+
+  <div class="phone">
+
+    <div class="scr on" id="s0">
+      <div class="tgh">
+        Своя игра
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+          <svg onclick="show(3)" style="cursor:pointer" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.8"><path d="M10 4v12M4 10h12"/></svg>
+        </div>
+      </div>
+      <div style="padding:6px 0 16px;">
+        <div style="padding:10px 14px 6px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;color:#999;font-family:var(--font-sans);">3 игры</span>
+          <span style="font-size:11px;color:#999;font-family:var(--font-sans);">Сортировка</span>
+        </div>
+        <div class="wcard" style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:0;" onclick="show(1)">
+          <div style="width:40px;height:40px;background:#1a1a1a;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:500;color:#1a1a1a;font-family:var(--font-sans);">История мира</div>
+            <div style="font-size:11px;color:#999;margin-top:2px;font-family:var(--font-sans);">5 категорий · 25 вопросов</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="badge" style="background:#f0f0f0;color:#666;">Готова</span>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#ccc" stroke-width="2"><path d="M8 5l6 5-6 5"/></svg>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="wcard" style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:0;" onclick="show(1)">
+          <div style="width:40px;height:40px;background:#333;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:500;color:#1a1a1a;font-family:var(--font-sans);">Наука и технологии</div>
+            <div style="font-size:11px;color:#999;margin-top:2px;font-family:var(--font-sans);">4 категории · 12 / 20 вопросов</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="badge" style="background:#fff8e1;color:#a07800;">В работе</span>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#ccc" stroke-width="2"><path d="M8 5l6 5-6 5"/></svg>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="wcard" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="show(1)">
+          <div style="width:40px;height:40px;background:#666;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:500;color:#1a1a1a;font-family:var(--font-sans);">Кино и музыка</div>
+            <div style="font-size:11px;color:#999;margin-top:2px;font-family:var(--font-sans);">3 категории · 0 / 15 вопросов</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="badge" style="background:#f5f5f5;color:#bbb;">Черновик</span>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#ccc" stroke-width="2"><path d="M8 5l6 5-6 5"/></svg>
+          </div>
+        </div>
+        <div style="padding:4px 8px 0;">
+          <button class="tbtn" onclick="show(3)">+ Создать игру</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="scr" id="s1">
+      <div class="tgh">
+        <svg onclick="show(0)" style="cursor:pointer" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2"><path d="M12 5l-7 5 7 5"/></svg>
+        История мира
+        <svg style="margin-left:auto" onclick="show(4)" style="cursor:pointer" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2"><path d="M10 4v12M4 10h12"/></svg>
+      </div>
+      <div style="padding:8px;">
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;">
+          <div class="qcell cat">Антич-ность</div>
+          <div class="qcell cat">Средние века</div>
+          <div class="qcell cat">Новое время</div>
+          <div class="qcell cat">XX век</div>
+          <div class="qcell cat">Сейчас</div>
+          <div class="qcell" onclick="show(2)">100</div>
+          <div class="qcell" onclick="show(2)">100</div>
+          <div class="qcell used">100</div>
+          <div class="qcell" onclick="show(2)">100</div>
+          <div class="qcell" onclick="show(2)">100</div>
+          <div class="qcell" onclick="show(2)">200</div>
+          <div class="qcell used">200</div>
+          <div class="qcell" onclick="show(2)">200</div>
+          <div class="qcell" onclick="show(2)">200</div>
+          <div class="qcell used">200</div>
+          <div class="qcell" onclick="show(2)">300</div>
+          <div class="qcell" onclick="show(2)">300</div>
+          <div class="qcell" onclick="show(2)">300</div>
+          <div class="qcell used">300</div>
+          <div class="qcell" onclick="show(2)">300</div>
+          <div class="qcell" onclick="show(2)">400</div>
+          <div class="qcell" onclick="show(2)">400</div>
+          <div class="qcell" onclick="show(2)">400</div>
+          <div class="qcell" onclick="show(2)">400</div>
+          <div class="qcell" onclick="show(2)">400</div>
+          <div class="qcell" onclick="show(2)">500</div>
+          <div class="qcell" onclick="show(2)">500</div>
+          <div class="qcell" onclick="show(2)">500</div>
+          <div class="qcell" onclick="show(2)">500</div>
+          <div class="qcell" onclick="show(2)">500</div>
+        </div>
+        <div style="margin-top:8px;background:#fff;border-radius:10px;padding:10px;">
+          <div style="font-size:11px;color:#999;margin-bottom:6px;font-family:var(--font-sans);">Счёт</div>
+          <div style="display:flex;gap:5px;">
+            <div style="flex:1;text-align:center;background:#1a1a1a;border-radius:7px;padding:8px;">
+              <div style="font-size:10px;color:#aaa;font-family:var(--font-sans);">Алекс</div>
+              <div style="font-size:16px;font-weight:500;color:#fff;font-family:var(--font-sans);">700</div>
+            </div>
+            <div style="flex:1;text-align:center;background:#f5f5f5;border-radius:7px;padding:8px;">
+              <div style="font-size:10px;color:#999;font-family:var(--font-sans);">Маша</div>
+              <div style="font-size:16px;font-weight:500;color:#333;font-family:var(--font-sans);">400</div>
+            </div>
+            <div style="flex:1;text-align:center;background:#f5f5f5;border-radius:7px;padding:8px;">
+              <div style="font-size:10px;color:#999;font-family:var(--font-sans);">Серёжа</div>
+              <div style="font-size:16px;font-weight:500;color:#333;font-family:var(--font-sans);">200</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scr" id="s2">
+      <div class="tgh">
+        <svg onclick="show(1)" style="cursor:pointer" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2"><path d="M12 5l-7 5 7 5"/></svg>
+        Античность · 300 очков
+      </div>
+      <div style="padding:12px;">
+        <div style="background:#fff;border-radius:12px;padding:20px;text-align:center;margin-bottom:10px;">
+          <div style="font-size:11px;color:#bbb;margin-bottom:12px;letter-spacing:0.05em;font-family:var(--font-sans);">ВОПРОС</div>
+          <div style="font-size:15px;line-height:1.6;color:#1a1a1a;font-family:var(--font-sans);">Этот правитель Римской империи прославился философскими трудами и написал «Размышления».</div>
+        </div>
+        <button class="tbtn" id="ans-btn" onclick="toggleAns()" style="margin-bottom:8px;">Показать ответ</button>
+        <div id="ans-box" style="display:none;background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:16px;text-align:center;margin-bottom:8px;">
+          <div style="font-size:11px;color:#999;margin-bottom:6px;letter-spacing:0.05em;font-family:var(--font-sans);">ОТВЕТ</div>
+          <div style="font-size:18px;font-weight:500;color:#1a1a1a;font-family:var(--font-sans);">Марк Аврелий</div>
+        </div>
+        <div id="award-row" style="display:none;">
+          <div style="font-size:11px;color:#999;text-align:center;margin-bottom:6px;font-family:var(--font-sans);">Кто ответил правильно?</div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="show(1)" style="flex:1;background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-sans);">Алекс</button>
+            <button onclick="show(1)" style="flex:1;background:#f5f5f5;color:#333;border:0.5px solid #e0e0e0;border-radius:8px;padding:10px;font-size:12px;cursor:pointer;font-family:var(--font-sans);">Маша</button>
+            <button onclick="show(1)" style="flex:1;background:#f5f5f5;color:#999;border:0.5px solid #e0e0e0;border-radius:8px;padding:10px;font-size:12px;cursor:pointer;font-family:var(--font-sans);">Никто</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scr" id="s3">
+      <div class="tgh">
+        <svg onclick="show(0)" style="cursor:pointer" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2"><path d="M12 5l-7 5 7 5"/></svg>
+        Новая игра
+      </div>
+      <div style="padding:10px 10px 20px;">
+        <div class="wcard" style="margin:0 0 8px;">
+          <span class="tlabel">Название игры</span>
+          <input class="tinput" placeholder="Например: «Итоги квартала»" />
+          <span class="tlabel">Описание</span>
+          <textarea class="tinput" rows="2" placeholder="Краткое описание для участников..."></textarea>
+          <span class="tlabel">Количество категорий</span>
+          <div class="pill-row" style="grid-template-columns:repeat(5,minmax(0,1fr));">
+            <div class="ppill">3</div><div class="ppill">4</div><div class="ppill on">5</div><div class="ppill">6</div><div class="ppill">7</div>
+          </div>
+          <span class="tlabel">Стоимость вопросов</span>
+          <div class="pill-row" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+            <div class="ppill on">100 – 500</div><div class="ppill">100 – 1000</div>
+          </div>
+          <span class="tlabel">Игроки</span>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <input class="tinput" style="margin:0;flex:1;" placeholder="Имя участника" />
+            <button style="background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:14px;cursor:pointer;">+</button>
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <div style="background:#f5f5f5;color:#333;border:0.5px solid #e0e0e0;border-radius:20px;padding:4px 10px;font-size:12px;font-family:var(--font-sans);">Алекс ×</div>
+            <div style="background:#f5f5f5;color:#333;border:0.5px solid #e0e0e0;border-radius:20px;padding:4px 10px;font-size:12px;font-family:var(--font-sans);">Маша ×</div>
+          </div>
+        </div>
+        <button class="tbtn" onclick="show(4)">Создать и добавить вопросы →</button>
+      </div>
+    </div>
+
+    <div class="scr" id="s4">
+      <div class="tgh">
+        <svg onclick="show(3)" style="cursor:pointer" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2"><path d="M12 5l-7 5 7 5"/></svg>
+        Добавить вопрос
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:#aaa;font-family:var(--font-sans);">3 / 25</span>
+          <div style="width:40px;height:3px;background:#333;border-radius:2px;overflow:hidden;"><div style="width:12%;height:100%;background:#aaa;"></div></div>
+        </div>
+      </div>
+      <div style="padding:10px 10px 20px;">
+        <div class="wcard" style="margin:0 0 8px;">
+          <span class="tlabel">Категория</span>
+          <select class="tinput" style="padding:9px 11px;appearance:none;color:#1a1a1a;">
+            <option>Античность</option>
+            <option>Средние века</option>
+            <option>Новое время</option>
+            <option>XX век</option>
+            <option>Сейчас</option>
+          </select>
+          <span class="tlabel">Стоимость</span>
+          <div class="pill-row" style="grid-template-columns:repeat(5,minmax(0,1fr));">
+            <div class="ppill">100</div><div class="ppill">200</div><div class="ppill on">300</div><div class="ppill">400</div><div class="ppill">500</div>
+          </div>
+          <span class="tlabel">Текст вопроса</span>
+          <textarea class="tinput" rows="3" placeholder="Введите вопрос...">Этот правитель Рима написал «Размышления»...</textarea>
+          <span class="tlabel">Правильный ответ</span>
+          <input class="tinput" value="Марк Аврелий" />
+          <span class="tlabel">Подсказка для ведущего (необязательно)</span>
+          <input class="tinput" placeholder="Доп. контекст или источник..." />
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="tbtn-ghost" style="flex:1;" onclick="show(4)">+ Ещё вопрос</button>
+          <button class="tbtn" style="flex:1;">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap;">
+    <button onclick="sendPrompt('Предложи улучшения для экрана добавления вопросов — хочу сделать его быстрее для массового ввода')" style="font-size:12px;color:var(--color-text-secondary);background:none;border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font-sans);">Быстрый ввод вопросов ↗</button>
+    <button onclick="sendPrompt('Как лучше организовать навигацию между экранами ведущего и игроков?')" style="font-size:12px;color:var(--color-text-secondary);background:none;border:0.5px solid var(--color-border-secondary);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font-sans);">Роли: ведущий / игрок ↗</button>
+  </div>
+</div>
+
+<script>
+  var ansOn=false;
+  function toggleAns(){
+    ansOn=!ansOn;
+    document.getElementById('ans-box').style.display=ansOn?'block':'none';
+    document.getElementById('award-row').style.display=ansOn?'block':'none';
+    document.getElementById('ans-btn').style.display=ansOn?'none':'block';
+  }
+  function show(i){
+    document.querySelectorAll('.scr').forEach(function(s,idx){s.className='scr'+(idx===i?' on':'');});
+    document.querySelectorAll('.stab').forEach(function(t,idx){t.className='stab'+(idx===i?' on':'');});
+    if(i!==2){ansOn=false;document.getElementById('ans-btn').style.display='block';document.getElementById('ans-box').style.display='none';document.getElementById('award-row').style.display='none';}
+  }
+</script>

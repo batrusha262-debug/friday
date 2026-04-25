@@ -1,0 +1,19 @@
+# Этот файл используется для генерации Enum'ов через
+# git.appkode.ru/pub/go/genum/cmd/genum
+# После внесения изменений в файл необходимо запустить команду "make generate"
+
+RoundType:
+  - standard
+  - double
+  - final
+
+QuestionType:
+  - standard
+  - auction
+  - cat_in_bag
+  - no_risk
+
+GameStatus:
+  - waiting
+  - active
+  - finished

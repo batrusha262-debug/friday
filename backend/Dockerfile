@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -trimpath \
       -tags netgo,osusergo \
       -ldflags="-s -w" \
-      -o /bin/app ./cmd/main
+      -o /bin/app ./main
 
 FROM scratch
 

@@ -8,6 +8,12 @@ import (
 	"friday/internal/pack/domain/enum"
 )
 
+type User struct {
+	ID        UserID    `json:"id"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Pack struct {
 	ID        PackID    `json:"id"`
 	Title     string    `json:"title"`
@@ -43,13 +49,14 @@ type Question struct {
 }
 
 type Game struct {
-	ID         GameID             `json:"id"`
-	PackID     PackID             `json:"pack_id"`
-	HostID     uuid.UUID          `json:"host_id"`
-	Status     enum.GameStatusEnum `json:"status"`
-	CreatedAt  time.Time          `json:"created_at"`
-	StartedAt  *time.Time         `json:"started_at,omitempty"`
-	FinishedAt *time.Time         `json:"finished_at,omitempty"`
+	ID              GameID              `json:"id"`
+	PackID          PackID              `json:"pack_id"`
+	HostID          uuid.UUID           `json:"host_id"`
+	Status          enum.GameStatusEnum `json:"status"`
+	CreatedAt       time.Time           `json:"created_at"`
+	StartedAt       *time.Time          `json:"started_at,omitempty"`
+	FinishedAt      *time.Time          `json:"finished_at,omitempty"`
+	CurrentPickerID *GameTeamID         `json:"current_picker_id,omitempty"`
 }
 
 type GameTeam struct {

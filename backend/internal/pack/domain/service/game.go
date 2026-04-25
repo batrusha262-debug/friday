@@ -132,6 +132,10 @@ func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UU
 		if err = s.repo.AwardTeamPoints(ctx, *teamID, question.Price); err != nil {
 			return values.GameQuestionState{}, err
 		}
+
+		if err = s.repo.SetCurrentPicker(ctx, gameID, teamID); err != nil {
+			return values.GameQuestionState{}, err
+		}
 	}
 
 	return stateEntity.ToDomain(), nil

@@ -3,7 +3,7 @@ export
 
 # --- Project ---
 MODULE        := friday
-MIGRATION_DIR := db/migrations
+MIGRATION_DIR := migrations
 DEFAULT_BRANCH := main
 LINT_CONFIG   := .golangci.yml
 
@@ -51,13 +51,13 @@ logs:
 # -----------------------------------------------------------------------
 
 build:
-	go build -o bin/friday ./cmd/main
+	go build -o bin/friday ./main
 
 generate:
 	go generate ./...
 
 run:
-	go run ./cmd/main
+	go run ./main
 
 # Единая проверка перед завершением работ
 check: format lint test notes
@@ -75,7 +75,7 @@ format:
 test:
 	go test -race -short ./...
 	$(MAKE) goose-up POSTGRES_HOST=localhost
-	POSTGRES_HOST=localhost go test -v -tags=integration -race -count=1 ./tests/integration/...
+	POSTGRES_HOST=localhost go test -v -tags=integration -race -count=1 ./integration/...
 	@echo
 	@echo "Integration tests passed"
 	

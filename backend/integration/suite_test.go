@@ -159,7 +159,7 @@ func migrationsDir() string {
 		return dir
 	}
 
-	return "../../db/migrations"
+	return "../migrations"
 }
 
 func TestSuite(t *testing.T) {

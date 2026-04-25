@@ -70,6 +70,7 @@ func (h *Handler) startGame(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	reply.JSON(r.Context(), w, http.StatusOK, g)
+	h.broadcastGameState(r.Context(), id)
 
 	return nil
 }
@@ -86,6 +87,7 @@ func (h *Handler) finishGame(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	reply.JSON(r.Context(), w, http.StatusOK, g)
+	h.broadcastGameState(r.Context(), id)
 
 	return nil
 }
@@ -109,6 +111,7 @@ func (h *Handler) addTeam(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	reply.JSON(r.Context(), w, http.StatusCreated, t)
+	h.broadcastGameState(r.Context(), gameID)
 
 	return nil
 }
@@ -184,6 +187,7 @@ func (h *Handler) answerQuestion(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	reply.JSON(r.Context(), w, http.StatusOK, state)
+	h.broadcastGameState(r.Context(), gameID)
 
 	return nil
 }

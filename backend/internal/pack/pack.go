@@ -13,6 +13,9 @@ import (
 )
 
 type Repository interface {
+	CreateUser(context.Context, string) (entity.User, error)
+	ListUsers(context.Context) ([]entity.User, error)
+
 	CreatePack(context.Context, string, uuid.UUID) (entity.Pack, error)
 	ListPacks(context.Context) ([]entity.Pack, error)
 	GetPack(context.Context, uuid.UUID) (entity.Pack, error)
@@ -42,6 +45,8 @@ type Repository interface {
 	ListGameTeams(context.Context, uuid.UUID) ([]entity.GameTeam, error)
 	RemoveGameTeam(context.Context, uuid.UUID) error
 	AwardTeamPoints(context.Context, uuid.UUID, int) error
+
+	SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error
 
 	MarkQuestionAnswered(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.GameQuestionState, error)
 	ListGameQuestionStates(context.Context, uuid.UUID) ([]entity.GameQuestionState, error)

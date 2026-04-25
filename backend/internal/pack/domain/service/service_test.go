@@ -146,6 +146,11 @@ func (r *repoStub) ListGameQuestionStates(context.Context, uuid.UUID) ([]entity.
 	return nil, nil
 }
 
+func (r *repoStub) SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error { return nil }
+
+func (r *repoStub) CreateUser(context.Context, string) (entity.User, error) { return entity.User{}, nil }
+func (r *repoStub) ListUsers(context.Context) ([]entity.User, error)         { return nil, nil }
+
 // compile-time check
 var _ pack.Repository = (*repoStub)(nil)
 

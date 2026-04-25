@@ -2,8 +2,8 @@ package values
 
 import "github.com/google/uuid"
 
-type CategoryID uuid.UUID
+type CategoryID = uuid.UUID
 
 func NewCategoryID() CategoryID {
-	return CategoryID(uuid.New())
+	return uuid.New()
 }

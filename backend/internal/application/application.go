@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,10 +11,14 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 
+	"friday/internal/pack/domain/service"
 	"friday/internal/pack/infrastructure/persistence"
 	packserver "friday/internal/pack/server"
-	"friday/internal/pack/domain/service"
+	"friday/internal/ws"
+	"friday/migrations"
 	"friday/pkg/cfg"
 	"friday/pkg/contextx"
 	"friday/pkg/postgres"
@@ -33,13 +38,15 @@ func (app *Application) Run() error {
 
 	config := cfg.Load()
 
-	db, err := postgres.New(ctx, postgres.Config{
+	pgConfig := postgres.Config{
 		Host:     config.Postgres.Host,
 		Port:     config.Postgres.Port,
 		User:     config.Postgres.User,
 		Password: config.Postgres.Password,
 		Database: config.Postgres.Database,
-	})
+	}
+
+	db, err := postgres.New(ctx, pgConfig)
 	if err != nil {
 		return err
 	}
@@ -47,7 +54,13 @@ func (app *Application) Run() error {
 
 	logger.Info("connected to postgres")
 
-	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db)))
+	if err := runMigrations(pgConfig.DSN()); err != nil {
+		return fmt.Errorf("migrations: %w", err)
+	}
+
+	logger.Info("migrations applied")
+
+	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db)), ws.NewHub())
 
 	r := chi.NewRouter()
 	h.Register(r)
@@ -72,4 +85,24 @@ func (app *Application) Run() error {
 	case <-ctx.Done():
 		return httpServer.Shutdown(context.Background())
 	}
+}
+
+func runMigrations(dsn string) error {
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return fmt.Errorf("sql.Open: %w", err)
+	}
+	defer db.Close()
+
+	goose.SetBaseFS(migrations.FS)
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		return fmt.Errorf("goose.SetDialect: %w", err)
+	}
+
+	if err := goose.Up(db, "."); err != nil {
+		return fmt.Errorf("goose.Up: %w", err)
+	}
+
+	return nil
 }

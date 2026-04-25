@@ -122,8 +122,16 @@ func (s *stubService) AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uui
 	return values.GameQuestionState{}, errors.New("stub")
 }
 
+func (s *stubService) CreateUser(context.Context, string) (values.User, error) {
+	return values.User{}, errors.New("stub")
+}
+
+func (s *stubService) ListUsers(context.Context) ([]values.User, error) {
+	return nil, errors.New("stub")
+}
+
 func TestRegister_allRoutesReachable(t *testing.T) {
-	h := server.NewHandler(&stubService{})
+	h := server.NewHandler(&stubService{}, nil)
 	r := chi.NewRouter()
 	h.Register(r)
 
@@ -133,6 +141,9 @@ func TestRegister_allRoutesReachable(t *testing.T) {
 		method string
 		path   string
 	}{
+		{http.MethodPost, "/admin/users"},
+		{http.MethodGet, "/admin/users"},
+
 		{http.MethodPost, "/admin/packs"},
 		{http.MethodGet, "/admin/packs"},
 		{http.MethodGet, "/admin/packs/" + id},
@@ -164,6 +175,8 @@ func TestRegister_allRoutesReachable(t *testing.T) {
 
 		{http.MethodGet, "/admin/games/" + id + "/board"},
 		{http.MethodPost, "/admin/games/" + id + "/questions/" + id + "/answer"},
+
+		{http.MethodGet, "/admin/games/" + id + "/events"},
 	}
 
 	for _, tc := range routes {

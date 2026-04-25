@@ -11,10 +11,14 @@ import (
 
 	"friday/internal/pack/domain/enum"
 	"friday/internal/pack/domain/values"
+	"friday/internal/ws"
 	"friday/pkg/httpx"
 )
 
 type Service interface {
+	CreateUser(context.Context, string) (values.User, error)
+	ListUsers(context.Context) ([]values.User, error)
+
 	CreatePack(context.Context, string, uuid.UUID) (values.Pack, error)
 	ListPacks(context.Context) ([]values.Pack, error)
 	GetPack(context.Context, uuid.UUID) (values.Pack, error)
@@ -50,14 +54,18 @@ type Service interface {
 
 type Handler struct {
 	svc Service
+	hub *ws.Hub
 }
 
-func NewHandler(svc Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc Service, hub *ws.Hub) *Handler {
+	return &Handler{svc: svc, hub: hub}
 }
 
 func (h *Handler) Register(r chi.Router) {
 	r.Route("/admin", func(r chi.Router) {
+		r.Post("/users", httpx.Handler(h.createUser))
+		r.Get("/users", httpx.Handler(h.listUsers))
+
 		r.Post("/packs", httpx.Handler(h.createPack))
 		r.Get("/packs", httpx.Handler(h.listPacks))
 		r.Get("/packs/{packID}", httpx.Handler(h.getPack))
@@ -89,12 +97,14 @@ func (h *Handler) Register(r chi.Router) {
 
 		r.Get("/games/{gameID}/board", httpx.Handler(h.getBoard))
 		r.Post("/games/{gameID}/questions/{questionID}/answer", httpx.Handler(h.answerQuestion))
+
+		r.Get("/games/{gameID}/events", httpx.Handler(h.gameEvents))
 	})
 }
 
 func decode(r *http.Request, dst any) error {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
-		return failure.NewInvalidArgumentError("invalid request body")
+		return failure.NewInvalidArgumentError("invalid request body: " + err.Error())
 	}
 
 	return nil

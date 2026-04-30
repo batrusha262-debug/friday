@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getGame, listRounds, listCategories, listQuestions, createQuestion } from '../api'
+import { getGame, listRounds, listCategories, listQuestions, createQuestion, getQuestion, updateQuestion } from '../api'
 
 const DEFAULT_PRICES = [100, 200, 300, 400, 500]
 
@@ -10,7 +10,7 @@ export default function AddQuestionPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const qc = useQueryClient()
-  const state = location.state as { categoryId?: string; price?: number } | null
+  const state = location.state as { categoryId?: string; price?: number; questionId?: string } | null
 
   const game = useQuery({ queryKey: ['game', gameId], queryFn: () => getGame(gameId!) })
   const packId = game.data?.pack_id
@@ -36,6 +36,21 @@ export default function AddQuestionPage() {
   const [comment, setComment] = useState('')
   const [error, setError] = useState('')
 
+  const editingId = state?.questionId
+  const existingQuestion = useQuery({
+    queryKey: ['question', editingId],
+    queryFn: () => getQuestion(editingId!),
+    enabled: !!editingId,
+  })
+
+  useEffect(() => {
+    const q = existingQuestion.data
+    if (!q) return
+    setQuestionText(q.question)
+    setAnswer(q.answer)
+    setComment(q.comment ?? '')
+  }, [existingQuestion.data])
+
   const effectiveCatId = catId || catList[0]?.id || ''
 
   const existingQuestions = useQuery({
@@ -50,6 +65,15 @@ export default function AddQuestionPage() {
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async () => {
+      if (editingId) {
+        return updateQuestion(editingId, {
+          price,
+          question: questionText.trim(),
+          answer: answer.trim(),
+          comment: comment.trim() || undefined,
+        })
+      }
+
       const existing = existingQuestions.data ?? []
       const orderNum = existing.length + 1
 
@@ -128,7 +152,7 @@ export default function AddQuestionPage() {
             <path d="M12 5l-7 5 7 5" />
           </svg>
         </button>
-        <span className="tgh-title">Добавить вопрос</span>
+        <span className="tgh-title">{editingId ? 'Редактировать вопрос' : 'Добавить вопрос'}</span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 11, color: '#aaa' }}>{filledCount} / {totalExpected}</span>
           <div className="prog-bar">
@@ -205,20 +229,27 @@ export default function AddQuestionPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 8, padding: '0 8px' }}>
+              {!editingId && (
+                <button
+                  type="button"
+                  className="tbtn-ghost"
+                  style={{ flex: 1 }}
+                  disabled={isPending}
+                  onClick={() => {
+                    if (!questionText.trim() || !answer.trim() || !effectiveCatId) return
+                    setError('')
+                    saveAndAdd()
+                  }}
+                >
+                  + Ещё вопрос
+                </button>
+              )}
               <button
-                type="button"
-                className="tbtn-ghost"
-                style={{ flex: 1 }}
+                type="submit"
+                className="tbtn"
+                style={{ flex: editingId ? undefined : 1 }}
                 disabled={isPending}
-                onClick={() => {
-                  if (!questionText.trim() || !answer.trim() || !effectiveCatId) return
-                  setError('')
-                  saveAndAdd()
-                }}
               >
-                + Ещё вопрос
-              </button>
-              <button type="submit" className="tbtn" style={{ flex: 1 }} disabled={isPending}>
                 {isPending ? 'Сохраняем…' : 'Сохранить'}
               </button>
             </div>

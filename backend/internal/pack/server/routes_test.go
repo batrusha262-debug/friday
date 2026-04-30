@@ -30,6 +30,10 @@ func (s *stubService) ListPacks(context.Context) ([]values.Pack, error) {
 	return nil, errors.New("stub")
 }
 
+func (s *stubService) ListOpenPacks(context.Context) ([]values.Pack, error) {
+	return nil, errors.New("stub")
+}
+
 func (s *stubService) GetPack(context.Context, uuid.UUID) (values.Pack, error) {
 	return values.Pack{}, errors.New("stub")
 }
@@ -90,6 +94,14 @@ func (s *stubService) GetGame(context.Context, uuid.UUID) (values.Game, error) {
 	return values.Game{}, errors.New("stub")
 }
 
+func (s *stubService) FindGameByCode(context.Context, string) (values.Game, error) {
+	return values.Game{}, errors.New("stub")
+}
+
+func (s *stubService) FindLatestGameByPack(context.Context, uuid.UUID) (values.Game, error) {
+	return values.Game{}, errors.New("stub")
+}
+
 func (s *stubService) DeleteGame(context.Context, uuid.UUID) error {
 	return errors.New("stub")
 }
@@ -99,6 +111,10 @@ func (s *stubService) StartGame(context.Context, uuid.UUID) (values.Game, error)
 }
 
 func (s *stubService) FinishGame(context.Context, uuid.UUID) (values.Game, error) {
+	return values.Game{}, errors.New("stub")
+}
+
+func (s *stubService) SetGameOpen(context.Context, uuid.UUID, bool) (values.Game, error) {
 	return values.Game{}, errors.New("stub")
 }
 
@@ -122,6 +138,14 @@ func (s *stubService) AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uui
 	return values.GameQuestionState{}, errors.New("stub")
 }
 
+func (s *stubService) ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (values.AnswerClaim, error) {
+	return values.AnswerClaim{}, errors.New("stub")
+}
+
+func (s *stubService) ValidateClaim(context.Context, uuid.UUID, bool) (values.AnswerClaim, error) {
+	return values.AnswerClaim{}, errors.New("stub")
+}
+
 func (s *stubService) CreateUser(context.Context, string) (values.User, error) {
 	return values.User{}, errors.New("stub")
 }
@@ -129,6 +153,22 @@ func (s *stubService) CreateUser(context.Context, string) (values.User, error) {
 func (s *stubService) ListUsers(context.Context) ([]values.User, error) {
 	return nil, errors.New("stub")
 }
+
+func (s *stubService) RequestCode(context.Context, string) error { return errors.New("stub") }
+
+func (s *stubService) VerifyCode(context.Context, string, string) (values.Session, error) {
+	return values.Session{}, errors.New("stub")
+}
+
+func (s *stubService) CreateGuestSession(context.Context, string) (values.Session, error) {
+	return values.Session{}, errors.New("stub")
+}
+
+func (s *stubService) GetSessionUser(context.Context, string) (values.User, error) {
+	return values.User{}, errors.New("stub")
+}
+
+func (s *stubService) Logout(context.Context, string) error { return errors.New("stub") }
 
 func TestRegister_allRoutesReachable(t *testing.T) {
 	h := server.NewHandler(&stubService{}, nil)
@@ -141,6 +181,11 @@ func TestRegister_allRoutesReachable(t *testing.T) {
 		method string
 		path   string
 	}{
+		{http.MethodPost, "/auth/request-code"},
+		{http.MethodPost, "/auth/verify-code"},
+		{http.MethodPost, "/auth/guest"},
+		{http.MethodPost, "/auth/logout"},
+
 		{http.MethodPost, "/admin/users"},
 		{http.MethodGet, "/admin/users"},
 
@@ -163,11 +208,14 @@ func TestRegister_allRoutesReachable(t *testing.T) {
 		{http.MethodPut, "/admin/questions/" + id},
 		{http.MethodDelete, "/admin/questions/" + id},
 
+		{http.MethodGet, "/admin/packs/" + id + "/game"},
+
 		{http.MethodPost, "/admin/games"},
 		{http.MethodGet, "/admin/games/" + id},
 		{http.MethodDelete, "/admin/games/" + id},
 		{http.MethodPost, "/admin/games/" + id + "/start"},
 		{http.MethodPost, "/admin/games/" + id + "/finish"},
+		{http.MethodPatch, "/admin/games/" + id + "/open"},
 
 		{http.MethodPost, "/admin/games/" + id + "/teams"},
 		{http.MethodGet, "/admin/games/" + id + "/teams"},
@@ -175,6 +223,8 @@ func TestRegister_allRoutesReachable(t *testing.T) {
 
 		{http.MethodGet, "/admin/games/" + id + "/board"},
 		{http.MethodPost, "/admin/games/" + id + "/questions/" + id + "/answer"},
+		{http.MethodPost, "/admin/games/" + id + "/questions/" + id + "/claim"},
+		{http.MethodPost, "/admin/claims/" + id + "/validate"},
 
 		{http.MethodGet, "/admin/games/" + id + "/events"},
 	}

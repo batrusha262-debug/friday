@@ -21,6 +21,7 @@ import (
 	"friday/migrations"
 	"friday/pkg/cfg"
 	"friday/pkg/contextx"
+	"friday/pkg/mailer"
 	"friday/pkg/postgres"
 )
 
@@ -60,7 +61,15 @@ func (app *Application) Run() error {
 
 	logger.Info("migrations applied")
 
-	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db)), ws.NewHub())
+	m := mailer.New(
+		config.SMTP.Host,
+		config.SMTP.Port,
+		config.SMTP.Username,
+		config.SMTP.Password,
+		config.SMTP.From,
+	)
+
+	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db), m), ws.NewHub())
 
 	r := chi.NewRouter()
 	h.Register(r)

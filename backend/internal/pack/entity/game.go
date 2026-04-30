@@ -14,6 +14,7 @@ type Game struct {
 	PackID          values.PackID       `db:"pack_id"`
 	HostID          uuid.UUID           `db:"host_id"`
 	Status          enum.GameStatusEnum `db:"status"`
+	IsOpen          bool                `db:"is_open"`
 	CreatedAt       time.Time           `db:"created_at"`
 	StartedAt       *time.Time          `db:"started_at"`
 	FinishedAt      *time.Time          `db:"finished_at"`
@@ -26,6 +27,7 @@ func (e Game) ToDomain() values.Game {
 		PackID:          e.PackID,
 		HostID:          e.HostID,
 		Status:          e.Status,
+		IsOpen:          e.IsOpen,
 		CreatedAt:       e.CreatedAt,
 		StartedAt:       e.StartedAt,
 		FinishedAt:      e.FinishedAt,

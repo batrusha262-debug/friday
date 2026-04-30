@@ -1,14 +1,18 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getQuestion, listTeams, answerQuestion } from '../api'
+import { getQuestion, listTeams, answerQuestion, claimAnswer } from '../api'
+import { useAuth } from '../App'
 
 export default function QuestionPage() {
   const { gameId, questionId } = useParams<{ gameId: string; questionId: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { role } = useAuth()
+  const isAdmin = role === 'admin'
   const [revealed, setRevealed] = useState(false)
   const [awarded, setAwarded] = useState(false)
+  const [claimed, setClaimed] = useState(false)
 
   const { data: question, isLoading: qLoading } = useQuery({
     queryKey: ['question', questionId],
@@ -27,6 +31,14 @@ export default function QuestionPage() {
       qc.invalidateQueries({ queryKey: ['board', gameId] })
       setAwarded(true)
       setTimeout(() => navigate(`/game/${gameId}`, { replace: true }), 600)
+    },
+  })
+
+  const { mutate: claim, isPending: isClaiming } = useMutation({
+    mutationFn: (teamId: string) => claimAnswer(gameId!, questionId!, teamId),
+    onSuccess: () => {
+      setClaimed(true)
+      setTimeout(() => navigate(`/game/${gameId}`, { replace: true }), 1500)
     },
   })
 
@@ -73,7 +85,7 @@ export default function QuestionPage() {
           <div className="question-text">{question.question}</div>
         </div>
 
-        {!revealed && !awarded && (
+        {!revealed && !awarded && !claimed && (
           <button
             className="tbtn"
             style={{ marginBottom: 8 }}
@@ -103,7 +115,7 @@ export default function QuestionPage() {
               )}
             </div>
 
-            {!awarded && (
+            {isAdmin && !awarded && (
               <div>
                 <div className="text-sm text-mid text-center mb-8">
                   Кто ответил правильно?
@@ -145,6 +157,57 @@ export default function QuestionPage() {
                   >
                     Никто
                   </button>
+                </div>
+              </div>
+            )}
+
+            {!isAdmin && !claimed && (
+              <div>
+                <div className="text-sm text-mid text-center mb-8">
+                  Ваша команда ответила правильно?
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(teams ?? []).map((team, i) => (
+                    <button
+                      key={team.id}
+                      onClick={() => claim(team.id)}
+                      disabled={isClaiming}
+                      style={{
+                        flex: 1,
+                        background: i === 0 ? '#1a1a1a' : '#f5f5f5',
+                        color: i === 0 ? '#fff' : '#333',
+                        border: i === 0 ? 'none' : '0.5px solid #e0e0e0',
+                        borderRadius: 8,
+                        padding: 10,
+                        fontSize: 12,
+                        fontWeight: i === 0 ? 500 : 400,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        opacity: isClaiming ? 0.5 : 1,
+                      }}
+                    >
+                      {team.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {claimed && (
+              <div
+                style={{
+                  background: '#f0faf0',
+                  border: '0.5px solid #b2e0b2',
+                  borderRadius: 10,
+                  padding: '14px 16px',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: 14, color: '#2a7a2a', fontWeight: 500 }}>
+                  Запрос отправлен
+                </div>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Ждём подтверждения ведущего…
                 </div>
               </div>
             )}

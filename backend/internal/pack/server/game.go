@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
 	"friday/pkg/httpx/reply"
@@ -34,6 +35,35 @@ func (h *Handler) getGame(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	g, err := h.svc.GetGame(r.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, g)
+
+	return nil
+}
+
+func (h *Handler) getGameByPack(w http.ResponseWriter, r *http.Request) error {
+	packID, err := parseID(r, "packID")
+	if err != nil {
+		return err
+	}
+
+	g, err := h.svc.FindLatestGameByPack(r.Context(), packID)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, g)
+
+	return nil
+}
+
+func (h *Handler) findGameByCode(w http.ResponseWriter, r *http.Request) error {
+	code := chi.URLParam(r, "code")
+
+	g, err := h.svc.FindGameByCode(r.Context(), code)
 	if err != nil {
 		return err
 	}
@@ -159,6 +189,82 @@ func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	reply.JSON(r.Context(), w, http.StatusOK, board)
+
+	return nil
+}
+
+func (h *Handler) claimAnswer(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	questionID, err := parseID(r, "questionID")
+	if err != nil {
+		return err
+	}
+
+	var req struct {
+		TeamID uuid.UUID `json:"team_id"`
+	}
+	if err = decode(r, &req); err != nil {
+		return err
+	}
+
+	claim, err := h.svc.ClaimAnswer(r.Context(), gameID, questionID, req.TeamID)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusCreated, claim)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
+func (h *Handler) validateClaim(w http.ResponseWriter, r *http.Request) error {
+	claimID, err := parseID(r, "claimID")
+	if err != nil {
+		return err
+	}
+
+	var req struct {
+		Approved bool `json:"approved"`
+	}
+	if err = decode(r, &req); err != nil {
+		return err
+	}
+
+	claim, err := h.svc.ValidateClaim(r.Context(), claimID, req.Approved)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, claim)
+	h.broadcastGameState(r.Context(), claim.GameID)
+
+	return nil
+}
+
+func (h *Handler) setGameOpen(w http.ResponseWriter, r *http.Request) error {
+	id, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	var req struct {
+		Open bool `json:"open"`
+	}
+	if err = decode(r, &req); err != nil {
+		return err
+	}
+
+	g, err := h.svc.SetGameOpen(r.Context(), id, req.Open)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, g)
 
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"friday/internal/pack/domain/values"
 	"friday/pkg/httpx/reply"
 )
 
@@ -28,7 +29,19 @@ func (h *Handler) createPack(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) listPacks(w http.ResponseWriter, r *http.Request) error {
-	packs, err := h.svc.ListPacks(r.Context())
+	user, ok := authUserFromCtx(r)
+
+	var (
+		packs []values.Pack
+		err   error
+	)
+
+	if ok && user.Role == "admin" {
+		packs, err = h.svc.ListPacks(r.Context())
+	} else {
+		packs, err = h.svc.ListOpenPacks(r.Context())
+	}
+
 	if err != nil {
 		return err
 	}

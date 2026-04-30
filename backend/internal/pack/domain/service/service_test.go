@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"git.appkode.ru/pub/go/failure"
 	"github.com/google/uuid"
@@ -41,6 +42,7 @@ func (r *repoStub) CreatePack(ctx context.Context, title string, authorID uuid.U
 }
 
 func (r *repoStub) ListPacks(context.Context) ([]entity.Pack, error)        { return nil, nil }
+func (r *repoStub) ListOpenPacks(context.Context) ([]entity.Pack, error)    { return nil, nil }
 func (r *repoStub) GetPack(context.Context, uuid.UUID) (entity.Pack, error) { return entity.Pack{}, nil }
 func (r *repoStub) DeletePack(context.Context, uuid.UUID) error             { return nil }
 
@@ -107,10 +109,13 @@ func (r *repoStub) CreateGame(ctx context.Context, packID, hostID uuid.UUID) (en
 	return entity.Game{}, nil
 }
 
-func (r *repoStub) GetGame(context.Context, uuid.UUID) (entity.Game, error)    { return entity.Game{}, nil }
-func (r *repoStub) DeleteGame(context.Context, uuid.UUID) error                { return nil }
-func (r *repoStub) StartGame(context.Context, uuid.UUID) (entity.Game, error)  { return entity.Game{}, nil }
-func (r *repoStub) FinishGame(context.Context, uuid.UUID) (entity.Game, error) { return entity.Game{}, nil }
+func (r *repoStub) GetGame(context.Context, uuid.UUID) (entity.Game, error)               { return entity.Game{}, nil }
+func (r *repoStub) FindGameByCode(context.Context, string) (entity.Game, error)           { return entity.Game{}, nil }
+func (r *repoStub) FindLatestGameByPack(context.Context, uuid.UUID) (entity.Game, error)  { return entity.Game{}, nil }
+func (r *repoStub) DeleteGame(context.Context, uuid.UUID) error                           { return nil }
+func (r *repoStub) StartGame(context.Context, uuid.UUID) (entity.Game, error)             { return entity.Game{}, nil }
+func (r *repoStub) FinishGame(context.Context, uuid.UUID) (entity.Game, error)            { return entity.Game{}, nil }
+func (r *repoStub) SetGameOpen(context.Context, uuid.UUID, bool) (entity.Game, error)     { return entity.Game{}, nil }
 
 func (r *repoStub) AddGameTeam(ctx context.Context, gameID uuid.UUID, name string) (entity.GameTeam, error) {
 	if r.addGameTeam != nil {
@@ -151,6 +156,44 @@ func (r *repoStub) SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) erro
 func (r *repoStub) CreateUser(context.Context, string) (entity.User, error) { return entity.User{}, nil }
 func (r *repoStub) ListUsers(context.Context) ([]entity.User, error)         { return nil, nil }
 
+func (r *repoStub) CreateAuthCode(context.Context, string, string, time.Time) (entity.AuthCode, error) {
+	return entity.AuthCode{}, nil
+}
+
+func (r *repoStub) UseAuthCode(context.Context, string, string) (entity.AuthCode, error) {
+	return entity.AuthCode{}, nil
+}
+
+func (r *repoStub) UpsertAdminUser(context.Context, string) (entity.User, error) {
+	return entity.User{}, nil
+}
+
+func (r *repoStub) CreateGuestUser(context.Context, string) (entity.User, error) {
+	return entity.User{}, nil
+}
+
+func (r *repoStub) CreateSession(context.Context, uuid.UUID, string) (entity.Session, error) {
+	return entity.Session{}, nil
+}
+
+func (r *repoStub) GetSessionUser(context.Context, string) (entity.User, error) {
+	return entity.User{}, nil
+}
+
+func (r *repoStub) DeleteSession(context.Context, string) error { return nil }
+
+func (r *repoStub) ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (entity.AnswerClaim, error) {
+	return entity.AnswerClaim{}, nil
+}
+
+func (r *repoStub) ValidateClaim(context.Context, uuid.UUID, bool) (entity.AnswerClaim, error) {
+	return entity.AnswerClaim{}, nil
+}
+
+func (r *repoStub) ListPendingClaims(context.Context, uuid.UUID) ([]entity.AnswerClaim, error) {
+	return nil, nil
+}
+
 // compile-time check
 var _ pack.Repository = (*repoStub)(nil)
 
@@ -159,7 +202,7 @@ var _ pack.Repository = (*repoStub)(nil)
 // -----------------------------------------------------------------------
 
 func TestCreatePack_validation(t *testing.T) {
-	svc := service.NewService(&repoStub{})
+	svc := service.NewService(&repoStub{}, nil)
 	ctx := context.Background()
 
 	cases := []struct {
@@ -195,7 +238,7 @@ func TestCreatePack_callsRepo(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo).CreatePack(context.Background(), "My Pack", authorID)
+	_, err := service.NewService(repo, nil).CreatePack(context.Background(), "My Pack", authorID)
 
 	require.NoError(t, err)
 	assert.True(t, called, "repo.CreatePack was not called")
@@ -206,7 +249,7 @@ func TestCreatePack_callsRepo(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestCreateRound_validation(t *testing.T) {
-	svc := service.NewService(&repoStub{})
+	svc := service.NewService(&repoStub{}, nil)
 	ctx := context.Background()
 
 	cases := []struct {
@@ -229,7 +272,7 @@ func TestCreateRound_validation(t *testing.T) {
 }
 
 func TestCreateRound_allTypesAccepted(t *testing.T) {
-	svc := service.NewService(&repoStub{})
+	svc := service.NewService(&repoStub{}, nil)
 
 	for _, roundType := range enum.RoundTypeValues() {
 		t.Run(roundType.String(), func(t *testing.T) {
@@ -245,7 +288,7 @@ func TestCreateRound_allTypesAccepted(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestCreateCategory_emptyName(t *testing.T) {
-	_, err := service.NewService(&repoStub{}).CreateCategory(context.Background(), uuid.New(), "")
+	_, err := service.NewService(&repoStub{}, nil).CreateCategory(context.Background(), uuid.New(), "")
 
 	require.Error(t, err)
 	assert.True(t, failure.IsInvalidArgumentError(err))
@@ -256,7 +299,7 @@ func TestCreateCategory_emptyName(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestValidateQuestion_invalidInputs(t *testing.T) {
-	svc := service.NewService(&repoStub{})
+	svc := service.NewService(&repoStub{}, nil)
 	ctx := context.Background()
 	catID := uuid.New()
 
@@ -295,7 +338,7 @@ func TestValidateQuestion_invalidInputs(t *testing.T) {
 }
 
 func TestValidateQuestion_allTypesAccepted(t *testing.T) {
-	svc := service.NewService(&repoStub{})
+	svc := service.NewService(&repoStub{}, nil)
 
 	for _, qt := range enum.QuestionTypeValues() {
 		t.Run(qt.String(), func(t *testing.T) {
@@ -318,7 +361,7 @@ func TestValidateQuestion_allTypesAccepted(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestCreateGame_validation(t *testing.T) {
-	svc := service.NewService(&repoStub{})
+	svc := service.NewService(&repoStub{}, nil)
 	ctx := context.Background()
 
 	cases := []struct {
@@ -345,7 +388,7 @@ func TestCreateGame_validation(t *testing.T) {
 // -----------------------------------------------------------------------
 
 func TestAddGameTeam_emptyName(t *testing.T) {
-	_, err := service.NewService(&repoStub{}).AddGameTeam(context.Background(), uuid.New(), "")
+	_, err := service.NewService(&repoStub{}, nil).AddGameTeam(context.Background(), uuid.New(), "")
 
 	require.Error(t, err)
 	assert.True(t, failure.IsInvalidArgumentError(err))
@@ -387,7 +430,7 @@ func TestAnswerQuestion_withTeam_awardsPoints(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo).AnswerQuestion(context.Background(), gameID, questionID, &teamID)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), gameID, questionID, &teamID)
 
 	require.NoError(t, err)
 	assert.True(t, awardCalled, "AwardTeamPoints was not called")
@@ -405,7 +448,7 @@ func TestAnswerQuestion_withoutTeam_doesNotAwardPoints(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil)
 
 	require.NoError(t, err)
 	assert.False(t, awardCalled, "AwardTeamPoints should not be called when teamID is nil")
@@ -420,7 +463,7 @@ func TestAnswerQuestion_repoError_propagates(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil)
 
 	assert.ErrorIs(t, err, repoErr)
 }

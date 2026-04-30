@@ -2,10 +2,15 @@ package service
 
 import "friday/internal/pack"
 
-type Service struct {
-	repo pack.Repository
+type Mailer interface {
+	Send(to, subject, body string) error
 }
 
-func NewService(repo pack.Repository) *Service {
-	return &Service{repo: repo}
+type Service struct {
+	repo   pack.Repository
+	mailer Mailer
+}
+
+func NewService(repo pack.Repository, mailer Mailer) *Service {
+	return &Service{repo: repo, mailer: mailer}
 }

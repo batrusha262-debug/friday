@@ -1,7 +1,14 @@
 export interface User {
   id: string
   username: string
+  email?: string
+  role: 'admin' | 'guest'
   created_at: string
+}
+
+export interface Session {
+  token: string
+  user: User
 }
 
 export interface Pack {
@@ -43,6 +50,7 @@ export interface Game {
   pack_id: string
   host_id: string
   status: 'waiting' | 'active' | 'finished'
+  is_open: boolean
   created_at: string
   started_at?: string
   finished_at?: string
@@ -65,7 +73,18 @@ export interface GameQuestionState {
   answered_at?: string
 }
 
+export interface AnswerClaim {
+  id: string
+  game_id: string
+  question_id: string
+  team_id: string
+  claimed_at: string
+  status: 'pending' | 'approved' | 'rejected'
+  reviewed_at?: string
+}
+
 export interface GameBoard {
   teams: GameTeam[]
   states: GameQuestionState[]
+  pending_claims: AnswerClaim[]
 }

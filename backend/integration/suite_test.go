@@ -24,10 +24,11 @@ import (
 
 type Suite struct {
 	suite.Suite
-	db   *pgxpool.Pool
-	srv  *httptest.Server
-	repo *persistence.PgRepository
-	http *Client
+	db         *pgxpool.Pool
+	srv        *httptest.Server
+	repo       *persistence.PgRepository
+	http       *Client
+	adminToken string
 }
 
 func (s *Suite) SetupSuite() {
@@ -53,13 +54,13 @@ func (s *Suite) SetupSuite() {
 	s.Require().NoError(goose.Up(sqlDB, migrationsDir()))
 
 	pgRepo := persistence.NewPgRepository(db)
-	h := packserver.NewHandler(service.NewService(pgRepo))
+	h := packserver.NewHandler(service.NewService(pgRepo, nil), nil)
 	r := chi.NewRouter()
 	h.Register(r)
 	s.srv = httptest.NewServer(r)
 
 	s.repo = pgRepo
-	s.http = NewClient(s.srv.URL)
+	s.http = NewClient(s.srv.URL, func() string { return s.adminToken })
 }
 
 func (s *Suite) TearDownSuite() {
@@ -68,9 +69,29 @@ func (s *Suite) TearDownSuite() {
 }
 
 func (s *Suite) SetupTest() {
-	_, err := s.db.Exec(context.Background(),
-		`TRUNCATE game_question_states, game_teams, games, questions, categories, rounds, packs, users RESTART IDENTITY CASCADE`)
+	ctx := context.Background()
+
+	_, err := s.db.Exec(ctx,
+		`TRUNCATE game_answer_claims, game_question_states, game_teams, games, questions, categories, rounds, packs, auth_codes, users RESTART IDENTITY CASCADE`)
 	s.Require().NoError(err)
+
+	s.adminToken = s.seedAdminSession(ctx)
+}
+
+func (s *Suite) seedAdminSession(ctx context.Context) string {
+	var userID uuid.UUID
+
+	err := s.db.QueryRow(ctx,
+		`INSERT INTO users (username, email, role) VALUES ('admin', 'admin@test.internal', 'admin') RETURNING id`).Scan(&userID)
+	s.Require().NoError(err)
+
+	token := uuid.New().String()
+
+	_, err = s.db.Exec(ctx,
+		`INSERT INTO sessions (user_id, token) VALUES ($1, $2)`, userID, token)
+	s.Require().NoError(err)
+
+	return token
 }
 
 func (s *Suite) seedUser(ctx context.Context) uuid.UUID {

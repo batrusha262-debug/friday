@@ -68,6 +68,39 @@ func (r *PgRepository) ListPacks(ctx context.Context) ([]entity.Pack, error) {
 	return entities, nil
 }
 
+func (r *PgRepository) ListOpenPacks(ctx context.Context) ([]entity.Pack, error) {
+	rows, err := r.db.Query(ctx,
+		`
+		SELECT
+		    p.id,
+		    p.title,
+		    p.author_id,
+		    p.created_at
+		FROM
+		    packs p
+		WHERE EXISTS (
+		    SELECT 1
+		    FROM
+		        games g
+		    WHERE
+		        g.pack_id = p.id
+		        AND g.is_open = true
+		)
+		ORDER BY p.created_at DESC
+		`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list open packs: %w", err)
+	}
+
+	entities, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Pack])
+	if err != nil {
+		return nil, fmt.Errorf("list open packs: %w", err)
+	}
+
+	return entities, nil
+}
+
 func (r *PgRepository) GetPack(ctx context.Context, id uuid.UUID) (entity.Pack, error) {
 	rows, err := r.db.Query(ctx,
 		`

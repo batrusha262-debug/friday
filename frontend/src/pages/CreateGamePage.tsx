@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createPack, createRound, createCategory, createGame, addTeam, startGame } from '../api'
+import { createPack, createRound, createCategory, createGame } from '../api'
 
 const PRICE_SCALES = {
   '100–500': [100, 200, 300, 400, 500],
@@ -22,8 +22,6 @@ export default function CreateGamePage() {
     Array.from({ length: 5 }, (_, i) => `Категория ${i + 1}`),
   )
   const [scale, setScale] = useState<ScaleKey>('100–500')
-  const [playerInput, setPlayerInput] = useState('')
-  const [players, setPlayers] = useState<string[]>([])
   const [error, setError] = useState('')
 
   function handleCatCount(n: number) {
@@ -35,19 +33,6 @@ export default function CreateGamePage() {
 
       return next.slice(0, n)
     })
-  }
-
-  function addPlayer() {
-    const p = playerInput.trim()
-
-    if (!p || players.includes(p)) return
-
-    setPlayers(prev => [...prev, p])
-    setPlayerInput('')
-  }
-
-  function removePlayer(name: string) {
-    setPlayers(prev => prev.filter(p => p !== name))
   }
 
   const { mutate, isPending } = useMutation({
@@ -68,18 +53,10 @@ export default function CreateGamePage() {
       // 4. Create game
       const game = await createGame(pack.id, userId)
 
-      // 5. Add teams
-      for (const name of players) {
-        await addTeam(game.id, name)
-      }
-
-      // 6. Start game
-      await startGame(game.id)
-
-      // 7. Persist game reference
+      // 5. Persist game reference
       localStorage.setItem(`pack:${pack.id}:gameId`, game.id)
       localStorage.setItem(`game:${game.id}:packId`, pack.id)
-      localStorage.setItem(`game:${game.id}:status`, 'active')
+      localStorage.setItem(`game:${game.id}:status`, 'waiting')
       localStorage.setItem(`game:${game.id}:scale`, JSON.stringify(PRICE_SCALES[scale]))
 
       return game
@@ -97,7 +74,6 @@ export default function CreateGamePage() {
     e.preventDefault()
 
     if (!title.trim()) { setError('Введите название'); return }
-    if (players.length === 0) { setError('Добавьте хотя бы одного игрока'); return }
 
     setError('')
     mutate()
@@ -171,44 +147,6 @@ export default function CreateGamePage() {
               ))}
             </div>
 
-            <span className="tlabel">Игроки</span>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-              <input
-                className="tinput"
-                style={{ margin: 0, flex: 1 }}
-                placeholder="Имя участника"
-                value={playerInput}
-                onChange={e => setPlayerInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addPlayer())}
-              />
-              <button
-                type="button"
-                onClick={addPlayer}
-                style={{
-                  background: '#1a1a1a',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '9px 14px',
-                  fontSize: 14,
-                  cursor: 'pointer',
-                }}
-              >
-                +
-              </button>
-            </div>
-
-            {players.length > 0 && (
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {players.map(p => (
-                  <span key={p} className="chip">
-                    {p}
-                    <button className="chip-remove" type="button" onClick={() => removePlayer(p)}>×</button>
-                  </span>
-                ))}
-              </div>
-            )}
-
             {error && (
               <div style={{ fontSize: 12, color: '#c00', marginTop: 8 }}>{error}</div>
             )}
@@ -216,7 +154,7 @@ export default function CreateGamePage() {
 
           <div style={{ padding: '0 8px' }}>
             <button className="tbtn" type="submit" disabled={isPending}>
-              {isPending ? 'Создаём…' : 'Создать и добавить вопросы →'}
+              {isPending ? 'Создаём…' : 'Создать игру →'}
             </button>
           </div>
         </form>

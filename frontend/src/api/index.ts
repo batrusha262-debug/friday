@@ -1,5 +1,6 @@
 import { api } from './client'
 import type {
+  AnswerClaim,
   Category,
   Game,
   GameBoard,
@@ -8,8 +9,22 @@ import type {
   Pack,
   Question,
   Round,
+  Session,
   User,
 } from './types'
+
+// Auth
+export const requestCode = (email: string) =>
+  api.post<{ ok: boolean }>('/auth/request-code', { email })
+
+export const verifyCode = (email: string, code: string) =>
+  api.post<Session>('/auth/verify-code', { email, code })
+
+export const guestLogin = (name: string) =>
+  api.post<Session>('/auth/guest', { name })
+
+export const logout = () =>
+  api.post<void>('/auth/logout', {})
 
 // Users
 export const createUser = (username: string) =>
@@ -79,11 +94,23 @@ export const createGame = (pack_id: string, host_id: string) =>
 export const getGame = (gameId: string) =>
   api.get<Game>(`/admin/games/${gameId}`)
 
+export const getGameByPack = (packId: string) =>
+  api.get<Game>(`/admin/packs/${packId}/game`)
+
+export const findGameByCode = (code: string) =>
+  api.get<Game>(`/admin/games/join/${code.toLowerCase()}`)
+
+export const deleteGame = (gameId: string) =>
+  api.delete(`/admin/games/${gameId}`)
+
 export const startGame = (gameId: string) =>
   api.post<Game>(`/admin/games/${gameId}/start`, {})
 
 export const finishGame = (gameId: string) =>
   api.post<Game>(`/admin/games/${gameId}/finish`, {})
+
+export const setGameOpen = (gameId: string, open: boolean) =>
+  api.patch<Game>(`/admin/games/${gameId}/open`, { open })
 
 // Teams
 export const addTeam = (gameId: string, name: string) =>
@@ -108,3 +135,12 @@ export const answerQuestion = (
     `/admin/games/${gameId}/questions/${questionId}/answer`,
     { team_id: teamId },
   )
+
+export const claimAnswer = (gameId: string, questionId: string, teamId: string) =>
+  api.post<AnswerClaim>(
+    `/admin/games/${gameId}/questions/${questionId}/claim`,
+    { team_id: teamId },
+  )
+
+export const validateClaim = (claimId: string, approved: boolean) =>
+  api.post<AnswerClaim>(`/admin/claims/${claimId}/validate`, { approved })

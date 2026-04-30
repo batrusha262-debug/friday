@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import SetupPage from './pages/SetupPage'
+import LoginPage from './pages/LoginPage'
 import PackListPage from './pages/PackListPage'
 import CreateGamePage from './pages/CreateGamePage'
 import GameBoardPage from './pages/GameBoardPage'
@@ -8,30 +8,37 @@ import AddQuestionPage from './pages/AddQuestionPage'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-function useUserId(): string | null {
-  const id = localStorage.getItem('userId')
+export function useAuth() {
+  const token = localStorage.getItem('token')
+  const userId = localStorage.getItem('userId')
+  const role = localStorage.getItem('userRole') as 'admin' | 'guest' | null
 
-  if (id && !UUID_RE.test(id)) {
-    localStorage.removeItem('userId')
-    localStorage.removeItem('userName')
-    return null
+  if (!token || !userId || !UUID_RE.test(userId)) {
+    return { userId: null, role: null, token: null }
   }
 
-  return id
+  return { userId, role: role ?? 'guest', token }
 }
 
 function RequireUser({ children }: { children: React.ReactNode }) {
-  const userId = useUserId()
+  const { userId } = useAuth()
+  if (!userId) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
 
-  if (!userId) return <Navigate to="/setup" replace />
-
+function RequireAdmin({ children }: { children: React.ReactNode }) {
+  const { userId, role } = useAuth()
+  if (!userId) return <Navigate to="/login" replace />
+  if (role !== 'admin') return <Navigate to="/" replace />
   return <>{children}</>
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/setup" element={<SetupPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      {/* Legacy redirect */}
+      <Route path="/setup" element={<Navigate to="/login" replace />} />
       <Route
         path="/"
         element={
@@ -43,9 +50,9 @@ export default function App() {
       <Route
         path="/game/create"
         element={
-          <RequireUser>
+          <RequireAdmin>
             <CreateGamePage />
-          </RequireUser>
+          </RequireAdmin>
         }
       />
       <Route
@@ -67,9 +74,9 @@ export default function App() {
       <Route
         path="/game/:gameId/question/add"
         element={
-          <RequireUser>
+          <RequireAdmin>
             <AddQuestionPage />
-          </RequireUser>
+          </RequireAdmin>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />

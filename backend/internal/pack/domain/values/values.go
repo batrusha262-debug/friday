@@ -11,7 +11,14 @@ import (
 type User struct {
 	ID        UserID    `json:"id"`
 	Username  string    `json:"username"`
+	Email     *string   `json:"email,omitempty"`
+	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type Session struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
 }
 
 type Pack struct {
@@ -53,6 +60,7 @@ type Game struct {
 	PackID          PackID              `json:"pack_id"`
 	HostID          uuid.UUID           `json:"host_id"`
 	Status          enum.GameStatusEnum `json:"status"`
+	IsOpen          bool                `json:"is_open"`
 	CreatedAt       time.Time           `json:"created_at"`
 	StartedAt       *time.Time          `json:"started_at,omitempty"`
 	FinishedAt      *time.Time          `json:"finished_at,omitempty"`
@@ -75,7 +83,18 @@ type GameQuestionState struct {
 	AnsweredAt *time.Time  `json:"answered_at,omitempty"`
 }
 
+type AnswerClaim struct {
+	ID         uuid.UUID   `json:"id"`
+	GameID     GameID      `json:"game_id"`
+	QuestionID QuestionID  `json:"question_id"`
+	TeamID     GameTeamID  `json:"team_id"`
+	ClaimedAt  time.Time   `json:"claimed_at"`
+	Status     string      `json:"status"`
+	ReviewedAt *time.Time  `json:"reviewed_at,omitempty"`
+}
+
 type GameBoard struct {
-	Teams  []GameTeam          `json:"teams"`
-	States []GameQuestionState `json:"states"`
+	Teams         []GameTeam          `json:"teams"`
+	States        []GameQuestionState `json:"states"`
+	PendingClaims []AnswerClaim       `json:"pending_claims"`
 }

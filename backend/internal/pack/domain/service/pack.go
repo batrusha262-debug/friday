@@ -40,6 +40,21 @@ func (s *Service) ListPacks(ctx context.Context) ([]values.Pack, error) {
 	return packs, nil
 }
 
+func (s *Service) ListOpenPacks(ctx context.Context) ([]values.Pack, error) {
+	entities, err := s.repo.ListOpenPacks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	packs := make([]values.Pack, len(entities))
+
+	for i, e := range entities {
+		packs[i] = e.ToDomain()
+	}
+
+	return packs, nil
+}
+
 func (s *Service) GetPack(ctx context.Context, id uuid.UUID) (values.Pack, error) {
 	e, err := s.repo.GetPack(ctx, id)
 	if err != nil {

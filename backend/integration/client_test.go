@@ -10,12 +10,13 @@ import (
 )
 
 type Client struct {
-	base string
-	http *http.Client
+	base    string
+	http    *http.Client
+	tokenFn func() string
 }
 
-func NewClient(base string) *Client {
-	return &Client{base: base, http: &http.Client{}}
+func NewClient(base string, tokenFn func() string) *Client {
+	return &Client{base: base, http: &http.Client{}, tokenFn: tokenFn}
 }
 
 func (c *Client) Post(ctx context.Context, path string, header http.Header, body any) (*http.Response, error) {
@@ -48,6 +49,13 @@ func (c *Client) do(ctx context.Context, method, path string, header http.Header
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+
+	if c.tokenFn != nil {
+		if tok := c.tokenFn(); tok != "" {
+			req.Header.Set("Authorization", "Bearer "+tok)
+		}
+	}
+
 	for k, v := range header {
 		req.Header[k] = v
 	}

@@ -13,15 +13,29 @@ import type {
   User,
 } from './types'
 
+function ensureSession(data: Session): Session {
+  if (
+    !data ||
+    typeof data.token !== 'string' ||
+    !data.token ||
+    !data.user ||
+    typeof data.user.id !== 'string'
+  ) {
+    throw new Error('Некорректный ответ сервера авторизации')
+  }
+
+  return data
+}
+
 // Auth
 export const requestCode = (email: string) =>
   api.post<{ ok: boolean }>('/auth/request-code', { email })
 
 export const verifyCode = (email: string, code: string) =>
-  api.post<Session>('/auth/verify-code', { email, code })
+  api.post<Session>('/auth/verify-code', { email, code }).then(ensureSession)
 
 export const guestLogin = (name: string) =>
-  api.post<Session>('/auth/guest', { name })
+  api.post<Session>('/auth/guest', { name }).then(ensureSession)
 
 export const logout = () =>
   api.post<void>('/auth/logout', {})

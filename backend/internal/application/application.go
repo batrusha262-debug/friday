@@ -62,11 +62,8 @@ func (app *Application) Run() error {
 	logger.Info("migrations applied")
 
 	m := mailer.New(
-		config.SMTP.Host,
-		config.SMTP.Port,
-		config.SMTP.Username,
-		config.SMTP.Password,
-		config.SMTP.From,
+		config.Resend.APIKey,
+		config.Resend.From,
 	)
 
 	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db), m), ws.NewHub())

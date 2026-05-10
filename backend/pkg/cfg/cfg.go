@@ -5,7 +5,7 @@ import "os"
 type Config struct {
 	HTTPAddr string
 	Postgres PostgresConfig
-	SMTP     SMTPConfig
+	Resend   ResendConfig
 }
 
 type PostgresConfig struct {
@@ -16,12 +16,9 @@ type PostgresConfig struct {
 	Database string
 }
 
-type SMTPConfig struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	From     string
+type ResendConfig struct {
+	APIKey string
+	From   string
 }
 
 func Load() Config {
@@ -34,12 +31,9 @@ func Load() Config {
 			Password: getenv("POSTGRES_PASSWORD", "postgres"),
 			Database: getenv("POSTGRES_DB", "friday"),
 		},
-		SMTP: SMTPConfig{
-			Host:     getenv("SMTP_HOST", "smtp.gmail.com"),
-			Port:     getenv("SMTP_PORT", "587"),
-			Username: getenv("SMTP_USERNAME", ""),
-			Password: getenv("SMTP_PASSWORD", ""),
-			From:     getenv("SMTP_FROM", "noreply@friday"),
+		Resend: ResendConfig{
+			APIKey: getenv("RESEND_API_KEY", ""),
+			From:   getenv("RESEND_FROM", "onboarding@resend.dev"),
 		},
 	}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoad_defaults(t *testing.T) {
-	for _, key := range []string{"HTTP_ADDR", "POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB"} {
+	for _, key := range []string{"HTTP_ADDR", "POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "RESEND_API_KEY", "RESEND_FROM"} {
 		t.Setenv(key, "")
 	}
 
@@ -21,6 +21,8 @@ func TestLoad_defaults(t *testing.T) {
 	assert.Equal(t, "postgres", c.Postgres.User)
 	assert.Equal(t, "postgres", c.Postgres.Password)
 	assert.Equal(t, "friday", c.Postgres.Database)
+	assert.Equal(t, "", c.Resend.APIKey)
+	assert.Equal(t, "onboarding@resend.dev", c.Resend.From)
 }
 
 func TestLoad_envOverride(t *testing.T) {
@@ -30,6 +32,8 @@ func TestLoad_envOverride(t *testing.T) {
 	t.Setenv("POSTGRES_USER", "admin")
 	t.Setenv("POSTGRES_PASSWORD", "s3cr3t")
 	t.Setenv("POSTGRES_DB", "myapp")
+	t.Setenv("RESEND_API_KEY", "re_test")
+	t.Setenv("RESEND_FROM", "Friday <auth@example.com>")
 
 	c := cfg.Load()
 
@@ -39,4 +43,6 @@ func TestLoad_envOverride(t *testing.T) {
 	assert.Equal(t, "admin", c.Postgres.User)
 	assert.Equal(t, "s3cr3t", c.Postgres.Password)
 	assert.Equal(t, "myapp", c.Postgres.Database)
+	assert.Equal(t, "re_test", c.Resend.APIKey)
+	assert.Equal(t, "Friday <auth@example.com>", c.Resend.From)
 }

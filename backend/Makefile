@@ -34,6 +34,7 @@ up:
 	@echo "Postgres is ready"
 	$(MAKE) goose-up POSTGRES_HOST=localhost
 	docker compose up -d --build app
+	$(MAKE) logs
 
 ## Остановить всё и удалить тома
 down:
@@ -42,9 +43,9 @@ down:
 ## Перезапустить всё с нуля
 restart: down up
 
-## Логи приложения в реальном времени
+## Логи Docker в реальном времени
 logs:
-	docker compose logs -f app
+	docker compose logs -f
 
 # -----------------------------------------------------------------------
 # Local dev

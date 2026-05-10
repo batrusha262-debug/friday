@@ -12,10 +12,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (res.status === 204) return undefined as T
 
-  const data = await res.json()
+  const text = await res.text()
+  let data: unknown
+
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = text
+    }
+  }
 
   if (!res.ok) {
-    throw new Error(data?.message ?? `HTTP ${res.status}`)
+    if (typeof data === 'string') {
+      throw new Error(data)
+    }
+
+    if (typeof data === 'object' && data !== null && 'message' in data) {
+      const message = (data as { message?: unknown }).message
+      if (typeof message === 'string' && message) {
+        throw new Error(message)
+      }
+    }
+
+    throw new Error(`HTTP ${res.status}`)
   }
 
   return data as T

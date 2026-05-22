@@ -122,7 +122,16 @@ export default function QuestionPage() {
           <button
             className="tbtn"
             style={{ marginBottom: 8 }}
-            onClick={() => setRevealed(true)}
+            disabled={isClaiming}
+            onClick={() => {
+              setRevealed(true)
+              if (!isAdmin) {
+                const myTeamId = localStorage.getItem(`game:${gameId}:teamId`)
+                if (myTeamId && (teams ?? []).some(t => t.id === myTeamId)) {
+                  claim(myTeamId)
+                }
+              }
+            }}
           >
             Показать ответ
           </button>
@@ -194,26 +203,11 @@ export default function QuestionPage() {
               </div>
             )}
 
-            {!isAdmin && !claimConfirmed && (() => {
+            {!isAdmin && !claimConfirmed && !isClaiming && (() => {
               const myTeamId = localStorage.getItem(`game:${gameId}:teamId`)
               const myTeam = myTeamId ? (teams ?? []).find(t => t.id === myTeamId) : null
 
-              if (myTeam) {
-                return (
-                  <div>
-                    <div className="text-sm text-mid text-center mb-8">
-                      Вы ответили правильно, <strong>{myTeam.name}</strong>?
-                    </div>
-                    <button
-                      className="tbtn"
-                      onClick={() => claim(myTeam.id)}
-                      disabled={isClaiming}
-                    >
-                      {isClaiming ? 'Отправляем…' : 'Засчитать мой ответ'}
-                    </button>
-                  </div>
-                )
-              }
+              if (myTeam) return null
 
               return (
                 <div>

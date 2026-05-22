@@ -79,6 +79,19 @@ func validateQuestion(q values.Question) error {
 	if !q.Type.In(enum.QuestionTypeValues()...) {
 		return failure.NewInvalidArgumentError("invalid question type")
 	}
+	if len(q.Options) != 0 {
+		if len(q.Options) != 4 {
+			return failure.NewInvalidArgumentError("options must contain exactly 4 entries")
+		}
+		for _, opt := range q.Options {
+			if opt == "" {
+				return failure.NewInvalidArgumentError("option text is required")
+			}
+		}
+		if q.CorrectOption < 0 || int(q.CorrectOption) >= len(q.Options) {
+			return failure.NewInvalidArgumentError("correct_option out of range")
+		}
+	}
 
 	return nil
 }

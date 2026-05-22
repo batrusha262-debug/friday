@@ -6,6 +6,7 @@ import type {
   GameBoard,
   GameQuestionState,
   GameTeam,
+  MiniGame,
   Pack,
   Question,
   Round,
@@ -84,6 +85,8 @@ export const createQuestion = (
     answer: string
     comment?: string
     order_num: number
+    options: string[]
+    correct_option: number
   },
 ) => api.post<Question>(`/admin/categories/${categoryId}/questions`, data)
 
@@ -147,9 +150,20 @@ export const answerQuestion = (
   gameId: string,
   questionId: string,
   teamId: string | null,
+  wrongTeamId?: string | null,
 ) =>
   api.post<GameQuestionState>(
     `/admin/games/${gameId}/questions/${questionId}/answer`,
+    { team_id: teamId, wrong_team_id: wrongTeamId ?? null },
+  )
+
+export const claimMiniGame = (
+  gameId: string,
+  miniGameId: string,
+  teamId: string,
+) =>
+  api.post<MiniGame>(
+    `/admin/games/${gameId}/mini-games/${miniGameId}/claim`,
     { team_id: teamId },
   )
 

@@ -43,6 +43,8 @@ export interface Question {
   comment?: string
   media_url?: string
   order_num: number
+  options: string[]
+  correct_option: number
 }
 
 export interface Game {
@@ -83,8 +85,22 @@ export interface AnswerClaim {
   reviewed_at?: string
 }
 
+export interface MiniGame {
+  id: string
+  game_id: string
+  question_id: string
+  excluded_team_id?: string
+  pos_x: number
+  pos_y: number
+  started_at: string
+  appears_at: string
+  winner_team_id?: string
+  finished_at?: string
+}
+
 export interface GameBoard {
   teams: GameTeam[]
   states: GameQuestionState[]
   pending_claims: AnswerClaim[]
+  mini_game?: MiniGame
 }

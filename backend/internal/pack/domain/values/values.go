@@ -44,15 +44,17 @@ type Category struct {
 }
 
 type Question struct {
-	ID         QuestionID            `json:"id"`
-	CategoryID CategoryID            `json:"category_id"`
-	Price      int                   `json:"price"`
-	Type       enum.QuestionTypeEnum `json:"type"`
-	Question   string                `json:"question"`
-	Answer     string                `json:"answer"`
-	Comment    *string               `json:"comment,omitempty"`
-	MediaURL   *string               `json:"media_url,omitempty"`
-	OrderNum   int16                 `json:"order_num"`
+	ID            QuestionID            `json:"id"`
+	CategoryID    CategoryID            `json:"category_id"`
+	Price         int                   `json:"price"`
+	Type          enum.QuestionTypeEnum `json:"type"`
+	Question      string                `json:"question"`
+	Answer        string                `json:"answer"`
+	Comment       *string               `json:"comment,omitempty"`
+	MediaURL      *string               `json:"media_url,omitempty"`
+	OrderNum      int16                 `json:"order_num"`
+	Options       []string              `json:"options"`
+	CorrectOption int16                 `json:"correct_option"`
 }
 
 type Game struct {
@@ -97,4 +99,18 @@ type GameBoard struct {
 	Teams         []GameTeam          `json:"teams"`
 	States        []GameQuestionState `json:"states"`
 	PendingClaims []AnswerClaim       `json:"pending_claims"`
+	MiniGame      *MiniGame           `json:"mini_game,omitempty"`
+}
+
+type MiniGame struct {
+	ID             uuid.UUID  `json:"id"`
+	GameID         GameID     `json:"game_id"`
+	QuestionID     QuestionID `json:"question_id"`
+	ExcludedTeamID *uuid.UUID `json:"excluded_team_id,omitempty"`
+	PosX           int16      `json:"pos_x"`
+	PosY           int16      `json:"pos_y"`
+	StartedAt      time.Time  `json:"started_at"`
+	AppearsAt      time.Time  `json:"appears_at"`
+	WinnerTeamID   *uuid.UUID `json:"winner_team_id,omitempty"`
+	FinishedAt     *time.Time `json:"finished_at,omitempty"`
 }

@@ -61,10 +61,12 @@ type Service interface {
 	RemoveGameTeam(context.Context, uuid.UUID) error
 
 	GetBoard(context.Context, uuid.UUID) (values.GameBoard, error)
-	AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (values.GameQuestionState, error)
+	AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID) (values.GameQuestionState, error)
 
 	ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (values.AnswerClaim, error)
 	ValidateClaim(context.Context, uuid.UUID, bool) (values.AnswerClaim, error)
+
+	ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (values.MiniGame, error)
 }
 
 type contextKey string
@@ -107,6 +109,7 @@ func (h *Handler) Register(r chi.Router) {
 		r.Get("/games/{gameID}/events", httpx.Handler(h.gameEvents))
 		r.Post("/games/{gameID}/questions/{questionID}/answer", httpx.Handler(h.answerQuestion))
 		r.Post("/games/{gameID}/questions/{questionID}/claim", httpx.Handler(h.claimAnswer))
+		r.Post("/games/{gameID}/mini-games/{miniGameID}/claim", httpx.Handler(h.claimMiniGame))
 		r.Post("/games/{gameID}/join", httpx.Handler(h.joinGame))
 
 		// Admin-only routes

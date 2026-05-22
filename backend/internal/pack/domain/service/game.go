@@ -184,10 +184,19 @@ func (s *Service) GetBoard(ctx context.Context, gameID uuid.UUID) (values.GameBo
 		claims[i] = e.ToDomain()
 	}
 
+	var miniGame *values.MiniGame
+
+	mg, err := s.repo.GetActiveMiniGame(ctx, gameID)
+	if err == nil {
+		d := mg.ToDomain()
+		miniGame = &d
+	}
+
 	return values.GameBoard{
 		Teams:         teams,
 		States:        states,
 		PendingClaims: claims,
+		MiniGame:      miniGame,
 	}, nil
 }
 
@@ -238,7 +247,7 @@ func (s *Service) SetGameOpen(ctx context.Context, id uuid.UUID, open bool) (val
 	return e.ToDomain(), nil
 }
 
-func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UUID, teamID *uuid.UUID) (values.GameQuestionState, error) {
+func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UUID, teamID, wrongTeamID *uuid.UUID) (values.GameQuestionState, error) {
 	stateEntity, err := s.repo.MarkQuestionAnswered(ctx, gameID, questionID, teamID)
 	if err != nil {
 		return values.GameQuestionState{}, err
@@ -259,5 +268,24 @@ func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UU
 		}
 	}
 
+	if teamID == nil && wrongTeamID != nil {
+		if _, err := s.repo.CreateMiniGame(ctx, gameID, questionID, wrongTeamID); err != nil {
+			return values.GameQuestionState{}, err
+		}
+	}
+
 	return stateEntity.ToDomain(), nil
+}
+
+func (s *Service) ClaimMiniGame(ctx context.Context, miniGameID, teamID uuid.UUID) (values.MiniGame, error) {
+	mg, err := s.repo.ClaimMiniGame(ctx, miniGameID, teamID)
+	if err != nil {
+		return values.MiniGame{}, err
+	}
+
+	if err = s.repo.SetCurrentPicker(ctx, mg.GameID, &teamID); err != nil {
+		return values.MiniGame{}, err
+	}
+
+	return mg.ToDomain(), nil
 }

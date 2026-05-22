@@ -67,4 +67,8 @@ type Repository interface {
 	ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (entity.AnswerClaim, error)
 	ValidateClaim(context.Context, uuid.UUID, bool) (entity.AnswerClaim, error)
 	ListPendingClaims(context.Context, uuid.UUID) ([]entity.AnswerClaim, error)
+
+	CreateMiniGame(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.MiniGame, error)
+	GetActiveMiniGame(context.Context, uuid.UUID) (entity.MiniGame, error)
+	ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (entity.MiniGame, error)
 }

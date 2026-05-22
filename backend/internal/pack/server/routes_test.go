@@ -138,7 +138,7 @@ func (s *stubService) GetBoard(context.Context, uuid.UUID) (values.GameBoard, er
 	return values.GameBoard{}, errors.New("stub")
 }
 
-func (s *stubService) AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (values.GameQuestionState, error) {
+func (s *stubService) AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID) (values.GameQuestionState, error) {
 	return values.GameQuestionState{}, errors.New("stub")
 }
 
@@ -148,6 +148,10 @@ func (s *stubService) ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UU
 
 func (s *stubService) ValidateClaim(context.Context, uuid.UUID, bool) (values.AnswerClaim, error) {
 	return values.AnswerClaim{}, errors.New("stub")
+}
+
+func (s *stubService) ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (values.MiniGame, error) {
+	return values.MiniGame{}, errors.New("stub")
 }
 
 func (s *stubService) CreateUser(context.Context, string) (values.User, error) {

@@ -311,18 +311,48 @@ func (h *Handler) answerQuestion(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var req struct {
-		TeamID *uuid.UUID `json:"team_id"`
+		TeamID      *uuid.UUID `json:"team_id"`
+		WrongTeamID *uuid.UUID `json:"wrong_team_id"`
 	}
 	if err = decode(r, &req); err != nil {
 		return err
 	}
 
-	state, err := h.svc.AnswerQuestion(r.Context(), gameID, questionID, req.TeamID)
+	state, err := h.svc.AnswerQuestion(r.Context(), gameID, questionID, req.TeamID, req.WrongTeamID)
 	if err != nil {
 		return err
 	}
 
 	reply.JSON(r.Context(), w, http.StatusOK, state)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
+func (h *Handler) claimMiniGame(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	miniGameID, err := parseID(r, "miniGameID")
+	if err != nil {
+		return err
+	}
+
+	var req struct {
+		TeamID uuid.UUID `json:"team_id"`
+	}
+	if err = decode(r, &req); err != nil {
+		return err
+	}
+
+	mg, err := h.svc.ClaimMiniGame(r.Context(), miniGameID, req.TeamID)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, mg)
 	h.broadcastGameState(r.Context(), gameID)
 
 	return nil

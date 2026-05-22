@@ -76,6 +76,7 @@ export default function AddQuestionPage() {
       if (editingId) {
         return updateQuestion(editingId, {
           price,
+          type: existingQuestion.data?.type ?? 'standard',
           question: questionText.trim(),
           answer: correctAnswer(),
           comment: comment.trim() || undefined,

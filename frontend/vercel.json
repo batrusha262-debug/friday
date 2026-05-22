@@ -7,6 +7,10 @@
     {
       "source": "/auth/:path*",
       "destination": "https://friday-backend-liard.vercel.app/auth/:path*"
+    },
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
     }
   ]
 }

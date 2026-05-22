@@ -194,6 +194,20 @@ func (r *repoStub) ListPendingClaims(context.Context, uuid.UUID) ([]entity.Answe
 	return nil, nil
 }
 
+func (r *repoStub) CreateMiniGame(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.MiniGame, error) {
+	return entity.MiniGame{}, nil
+}
+
+func (r *repoStub) GetActiveMiniGame(context.Context, uuid.UUID) (entity.MiniGame, error) {
+	return entity.MiniGame{}, errNoMiniGame
+}
+
+func (r *repoStub) ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (entity.MiniGame, error) {
+	return entity.MiniGame{}, nil
+}
+
+var errNoMiniGame = errors.New("no active mini game")
+
 // compile-time check
 var _ pack.Repository = (*repoStub)(nil)
 
@@ -430,7 +444,7 @@ func TestAnswerQuestion_withTeam_awardsPoints(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), gameID, questionID, &teamID)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), gameID, questionID, &teamID, nil)
 
 	require.NoError(t, err)
 	assert.True(t, awardCalled, "AwardTeamPoints was not called")
@@ -448,7 +462,7 @@ func TestAnswerQuestion_withoutTeam_doesNotAwardPoints(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil, nil)
 
 	require.NoError(t, err)
 	assert.False(t, awardCalled, "AwardTeamPoints should not be called when teamID is nil")
@@ -463,7 +477,7 @@ func TestAnswerQuestion_repoError_propagates(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil, nil)
 
 	assert.ErrorIs(t, err, repoErr)
 }

@@ -13,10 +13,11 @@ import {
   validateClaim,
   setGameOpen,
   joinGame,
+  claimMiniGame,
 } from '../api'
 import { useGameEvents } from '../hooks/useGameEvents'
 import { useAuth } from '../App'
-import type { AnswerClaim, Game, GameBoard, GameTeam, Question } from '../api/types'
+import type { AnswerClaim, Game, GameBoard, GameTeam, MiniGame, Question } from '../api/types'
 
 interface BoardCell {
   question: Question | null
@@ -48,6 +49,7 @@ function useBoardData(gameId: string) {
   const effectiveTeams: GameTeam[] = (liveBoard ?? boardQuery.data)?.teams ?? []
   const effectiveStates = (liveBoard ?? boardQuery.data)?.states ?? []
   const pendingClaims: AnswerClaim[] = (liveBoard ?? boardQuery.data)?.pending_claims ?? []
+  const miniGame = (liveBoard ?? boardQuery.data)?.mini_game ?? null
 
   const packId = effectiveGame?.pack_id
   const rounds = useQuery({
@@ -107,6 +109,7 @@ function useBoardData(gameId: string) {
     grid,
     pendingClaims,
     questionById,
+    miniGame,
   }
 }
 
@@ -224,6 +227,162 @@ function TeamsPanel({ teams, currentPickerId }: { teams: GameTeam[]; currentPick
   )
 }
 
+function MiniGameOverlay({
+  miniGame,
+  gameId,
+  myTeamId,
+  teams,
+}: {
+  miniGame: MiniGame
+  gameId: string
+  myTeamId: string | null
+  teams: GameTeam[]
+}) {
+  const qc = useQueryClient()
+  const [now, setNow] = useState(() => Date.now())
+  const [outcome, setOutcome] = useState<'win' | 'lose' | null>(null)
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 100)
+
+    return () => clearInterval(id)
+  }, [])
+
+  const { mutate: claim, isPending } = useMutation({
+    mutationFn: () => claimMiniGame(gameId, miniGame.id, myTeamId!),
+    onSuccess: (mg) => {
+      setOutcome(mg.winner_team_id === myTeamId ? 'win' : 'lose')
+      qc.invalidateQueries({ queryKey: ['board', gameId] })
+    },
+    onError: () => {
+      setOutcome('lose')
+    },
+  })
+
+  const appearsAt = new Date(miniGame.appears_at).getTime()
+  const remainingMs = Math.max(0, appearsAt - now)
+  const remainingSec = Math.ceil(remainingMs / 1000)
+  const buttonVisible = remainingMs <= 0
+
+  const isExcluded = myTeamId !== null && miniGame.excluded_team_id === myTeamId
+  const isWinner = miniGame.winner_team_id !== undefined && miniGame.winner_team_id !== null
+
+  if (isWinner && !outcome) {
+    const winTeam = teams.find(t => t.id === miniGame.winner_team_id)
+
+    return (
+      <div style={overlayBg}>
+        <div style={overlayCard}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🏁</div>
+          <div style={{ fontSize: 17, fontWeight: 600, color: '#1a1a1a' }}>
+            Ход переходит к
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>
+            {winTeam?.name ?? '—'}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={overlayBg}>
+      {!buttonVisible && (
+        <div style={overlayCard}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>⚡</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a' }}>
+            {isExcluded ? 'Вы выбыли из гонки' : 'Приготовьтесь!'}
+          </div>
+          <div style={{ fontSize: 14, color: '#666', marginTop: 6 }}>
+            Кнопка появится через {remainingSec}с — кто первый, тот ходит
+          </div>
+        </div>
+      )}
+
+      {buttonVisible && !isExcluded && !outcome && myTeamId && (
+        <button
+          onClick={() => !isPending && claim()}
+          disabled={isPending}
+          style={{
+            position: 'fixed',
+            left: `${miniGame.pos_x}%`,
+            top: `${miniGame.pos_y}%`,
+            transform: 'translate(-50%, -50%)',
+            background: '#f0a500',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '50%',
+            width: 72,
+            height: 72,
+            fontSize: 28,
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 6px 20px rgba(240,165,0,0.6)',
+            zIndex: 1001,
+            fontFamily: 'inherit',
+          }}
+        >
+          ⚡
+        </button>
+      )}
+
+      {buttonVisible && isExcluded && (
+        <div style={overlayCard}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🚫</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a' }}>
+            Вы выбыли из гонки
+          </div>
+          <div style={{ fontSize: 14, color: '#666', marginTop: 6 }}>
+            Ждём пока другие команды нажмут кнопку…
+          </div>
+        </div>
+      )}
+
+      {buttonVisible && !isExcluded && !myTeamId && (
+        <div style={overlayCard}>
+          <div style={{ fontSize: 16, color: '#666' }}>Идёт мини-игра между командами</div>
+        </div>
+      )}
+
+      {outcome === 'win' && (
+        <div style={overlayCard}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🏆</div>
+          <div style={{ fontSize: 17, fontWeight: 600, color: '#1a6a1a' }}>
+            Ход ваш!
+          </div>
+        </div>
+      )}
+
+      {outcome === 'lose' && (
+        <div style={overlayCard}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>⏱</div>
+          <div style={{ fontSize: 16, color: '#666' }}>Опоздали</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const overlayBg: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  background: 'rgba(0,0,0,0.55)',
+  zIndex: 1000,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+}
+
+const overlayCard: React.CSSProperties = {
+  background: '#fff',
+  borderRadius: 16,
+  padding: '20px 24px',
+  textAlign: 'center',
+  boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+  maxWidth: 320,
+}
+
 export default function GameBoardPage() {
   const { gameId } = useParams<{ gameId: string }>()
   const navigate = useNavigate()
@@ -232,7 +391,7 @@ export default function GameBoardPage() {
   const isAdmin = role === 'admin'
   const [tab, setTab] = useState<'board' | 'online'>('board')
   const [joinError, setJoinError] = useState('')
-  const { loading, game, teams, categories, prices, grid, pendingClaims, questionById } = useBoardData(gameId!)
+  const { loading, game, teams, categories, prices, grid, pendingClaims, questionById, miniGame } = useBoardData(gameId!)
 
   const autoJoinedRef = useRef(false)
 
@@ -624,6 +783,14 @@ export default function GameBoardPage() {
 
       {openToggle}
       {claimsModal}
+      {miniGame && gameId && (
+        <MiniGameOverlay
+          miniGame={miniGame}
+          gameId={gameId}
+          myTeamId={localStorage.getItem(`game:${gameId}:teamId`)}
+          teams={teams}
+        />
+      )}
 
       {/* Tab bar */}
       <div className="tab-bar">

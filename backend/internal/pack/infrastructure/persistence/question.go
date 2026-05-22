@@ -24,7 +24,9 @@ func (r *PgRepository) GetQuestion(ctx context.Context, id uuid.UUID) (entity.Qu
 		    answer,
 		    comment,
 		    media_url,
-		    order_num
+		    order_num,
+		    options,
+		    correct_option
 		FROM
 		    questions
 		WHERE id = $1
@@ -50,9 +52,9 @@ func (r *PgRepository) GetQuestion(ctx context.Context, id uuid.UUID) (entity.Qu
 func (r *PgRepository) CreateQuestion(ctx context.Context, categoryID uuid.UUID, q values.Question) (entity.Question, error) {
 	rows, err := r.db.Query(ctx,
 		`
-		INSERT INTO questions (category_id, price, type, question, answer, comment, media_url, order_num)
+		INSERT INTO questions (category_id, price, type, question, answer, comment, media_url, options, correct_option, order_num)
 		VALUES (
-			$1, $2, $3, $4, $5, $6, $7,
+			$1, $2, $3, $4, $5, $6, $7, $8, $9,
 			COALESCE((SELECT MAX(order_num) FROM questions WHERE category_id = $1), 0) + 1
 		)
 		RETURNING
@@ -64,9 +66,11 @@ func (r *PgRepository) CreateQuestion(ctx context.Context, categoryID uuid.UUID,
 		    answer,
 		    comment,
 		    media_url,
-		    order_num
+		    order_num,
+		    options,
+		    correct_option
 		`,
-		categoryID, q.Price, q.Type, q.Question, q.Answer, q.Comment, q.MediaURL,
+		categoryID, q.Price, q.Type, q.Question, q.Answer, q.Comment, q.MediaURL, q.Options, q.CorrectOption,
 	)
 	if err != nil {
 		return entity.Question{}, fmt.Errorf("insert question: %w", err)
@@ -96,7 +100,9 @@ func (r *PgRepository) ListQuestions(ctx context.Context, categoryID uuid.UUID) 
 		    answer,
 		    comment,
 		    media_url,
-		    order_num
+		    order_num,
+		    options,
+		    correct_option
 		FROM
 		    questions
 		WHERE category_id = $1
@@ -121,12 +127,14 @@ func (r *PgRepository) UpdateQuestion(ctx context.Context, id uuid.UUID, q value
 		`
 		UPDATE questions
 		SET
-			price     = $2,
-			type      = $3,
-			question  = $4,
-			answer    = $5,
-			comment   = $6,
-			media_url = $7
+			price          = $2,
+			type           = $3,
+			question       = $4,
+			answer         = $5,
+			comment        = $6,
+			media_url      = $7,
+			options        = $8,
+			correct_option = $9
 		WHERE id = $1
 		RETURNING
 		    id,
@@ -137,9 +145,11 @@ func (r *PgRepository) UpdateQuestion(ctx context.Context, id uuid.UUID, q value
 		    answer,
 		    comment,
 		    media_url,
-		    order_num
+		    order_num,
+		    options,
+		    correct_option
 		`,
-		id, q.Price, q.Type, q.Question, q.Answer, q.Comment, q.MediaURL,
+		id, q.Price, q.Type, q.Question, q.Answer, q.Comment, q.MediaURL, q.Options, q.CorrectOption,
 	)
 	if err != nil {
 		return entity.Question{}, fmt.Errorf("update question: %w", err)

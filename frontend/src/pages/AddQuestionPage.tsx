@@ -32,7 +32,8 @@ export default function AddQuestionPage() {
   const [catId, setCatId] = useState(state?.categoryId ?? '')
   const [price, setPrice] = useState(state?.price ?? 100)
   const [questionText, setQuestionText] = useState('')
-  const [answer, setAnswer] = useState('')
+  const [options, setOptions] = useState<string[]>(['', '', '', ''])
+  const [correctIdx, setCorrectIdx] = useState(0)
   const [comment, setComment] = useState('')
   const [error, setError] = useState('')
 
@@ -47,7 +48,9 @@ export default function AddQuestionPage() {
     const q = existingQuestion.data
     if (!q) return
     setQuestionText(q.question)
-    setAnswer(q.answer)
+    const opts = q.options && q.options.length === 4 ? q.options : ['', '', '', '']
+    setOptions(opts)
+    setCorrectIdx(q.correct_option ?? 0)
     setComment(q.comment ?? '')
   }, [existingQuestion.data])
 
@@ -63,14 +66,21 @@ export default function AddQuestionPage() {
     localStorage.getItem(`game:${gameId}:scale`) ?? JSON.stringify(DEFAULT_PRICES),
   ) as number[]
 
+  const trimmedOptions = () => options.map(o => o.trim())
+  const correctAnswer = () => trimmedOptions()[correctIdx] ?? ''
+
   const { mutate: save, isPending } = useMutation({
     mutationFn: async () => {
+      const opts = trimmedOptions()
+
       if (editingId) {
         return updateQuestion(editingId, {
           price,
           question: questionText.trim(),
-          answer: answer.trim(),
+          answer: correctAnswer(),
           comment: comment.trim() || undefined,
+          options: opts,
+          correct_option: correctIdx,
         })
       }
 
@@ -81,9 +91,11 @@ export default function AddQuestionPage() {
         price,
         type: 'standard',
         question: questionText.trim(),
-        answer: answer.trim(),
+        answer: correctAnswer(),
         comment: comment.trim() || undefined,
         order_num: orderNum,
+        options: opts,
+        correct_option: correctIdx,
       })
     },
     onSuccess: () => {
@@ -100,21 +112,25 @@ export default function AddQuestionPage() {
     mutationFn: async () => {
       const existing = existingQuestions.data ?? []
       const orderNum = existing.length + 1
+      const opts = trimmedOptions()
 
       return createQuestion(effectiveCatId, {
         price,
         type: 'standard',
         question: questionText.trim(),
-        answer: answer.trim(),
+        answer: correctAnswer(),
         comment: comment.trim() || undefined,
         order_num: orderNum,
+        options: opts,
+        correct_option: correctIdx,
       })
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['questions-all'] })
       qc.invalidateQueries({ queryKey: ['questions', effectiveCatId] })
       setQuestionText('')
-      setAnswer('')
+      setOptions(['', '', '', ''])
+      setCorrectIdx(0)
       setComment('')
       setError('')
     },
@@ -123,12 +139,20 @@ export default function AddQuestionPage() {
     },
   })
 
+  function validate(): string | null {
+    if (!questionText.trim()) return 'Введите вопрос'
+    if (!effectiveCatId) return 'Нет категорий — создайте игру заново'
+    const opts = trimmedOptions()
+    if (opts.some(o => !o)) return 'Заполните все 4 варианта'
+    if (correctIdx < 0 || correctIdx > 3) return 'Выберите правильный вариант'
+
+    return null
+  }
+
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
-
-    if (!questionText.trim()) { setError('Введите вопрос'); return }
-    if (!answer.trim()) { setError('Введите ответ'); return }
-    if (!effectiveCatId) { setError('Нет категорий — создайте игру заново'); return }
+    const err = validate()
+    if (err) { setError(err); return }
 
     setError('')
     save()
@@ -207,13 +231,42 @@ export default function AddQuestionPage() {
                 onChange={e => setQuestionText(e.target.value)}
               />
 
-              <span className="tlabel">Правильный ответ</span>
-              <input
-                className="tinput"
-                placeholder="Введите ответ…"
-                value={answer}
-                onChange={e => setAnswer(e.target.value)}
-              />
+              <span className="tlabel">Варианты ответа (отметьте правильный)</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+                {options.map((opt, i) => (
+                  <label
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      background: correctIdx === i ? '#f0faf0' : '#fafafa',
+                      border: correctIdx === i ? '0.5px solid #b2e0b2' : '0.5px solid #e0e0e0',
+                      borderRadius: 10,
+                      padding: '6px 10px',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="correct"
+                      checked={correctIdx === i}
+                      onChange={() => setCorrectIdx(i)}
+                      style={{ flexShrink: 0 }}
+                    />
+                    <input
+                      className="tinput"
+                      style={{ marginBottom: 0, flex: 1 }}
+                      placeholder={`Вариант ${i + 1}`}
+                      value={opt}
+                      onChange={e => {
+                        const next = [...options]
+                        next[i] = e.target.value
+                        setOptions(next)
+                      }}
+                    />
+                  </label>
+                ))}
+              </div>
 
               <span className="tlabel">Подсказка для ведущего (необязательно)</span>
               <input
@@ -236,7 +289,8 @@ export default function AddQuestionPage() {
                   style={{ flex: 1 }}
                   disabled={isPending}
                   onClick={() => {
-                    if (!questionText.trim() || !answer.trim() || !effectiveCatId) return
+                    const err = validate()
+                    if (err) { setError(err); return }
                     setError('')
                     saveAndAdd()
                   }}

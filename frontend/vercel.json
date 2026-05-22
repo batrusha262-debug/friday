@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "https://friday-backend-liard.vercel.app/admin/:path*"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "https://friday-backend-liard.vercel.app/auth/:path*"
+    }
+  ]
+}

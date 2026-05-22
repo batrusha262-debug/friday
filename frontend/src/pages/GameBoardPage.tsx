@@ -311,73 +311,105 @@ export default function GameBoardPage() {
     )
   }
 
-  // Pending claims banner (admin only)
-  const claimsBanner = isAdmin && pendingClaims.length > 0 && (
-    <div style={{ background: '#fffbe6', borderBottom: '1px solid #ffe58f', padding: '10px 14px' }}>
-      <div style={{ fontSize: 12, color: '#996600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-        Ожидают подтверждения ({pendingClaims.length})
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {pendingClaims.map(c => {
-          const team = teams.find(t => t.id === c.team_id)
-          const question = questionById[c.question_id]
+  // Pending claim modal (admin only) — shows top-most pending claim
+  const topClaim = isAdmin ? pendingClaims[0] : null
+  const claimsModal = topClaim && (() => {
+    const team = teams.find(t => t.id === topClaim.team_id)
+    const question = questionById[topClaim.question_id]
+    const extra = pendingClaims.length - 1
 
-          return (
-            <div
-              key={c.id}
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.45)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 16,
+            padding: 20,
+            width: '100%',
+            maxWidth: 360,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              color: '#996600',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 10,
+              textAlign: 'center',
+            }}
+          >
+            Подтверждение ответа
+          </div>
+          <div style={{ fontSize: 17, textAlign: 'center', marginBottom: 4 }}>
+            <strong>{team?.name ?? '…'}</strong>
+          </div>
+          {question && (
+            <div style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 14 }}>
+              {question.question}
+            </div>
+          )}
+          {question && (
+            <div style={{ fontSize: 13, color: '#999', textAlign: 'center', marginBottom: 16 }}>
+              Ответ: <span style={{ color: '#333' }}>{question.answer}</span> · {question.price} очков
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => doValidate({ claimId: topClaim.id, approved: false })}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#fff',
-                borderRadius: 10,
-                padding: '8px 12px',
+                flex: 1,
+                background: '#f5f5f5',
+                color: '#333',
                 border: '0.5px solid #e0e0e0',
+                borderRadius: 10,
+                padding: '12px 14px',
+                fontSize: 14,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
               }}
             >
-              <div style={{ flex: 1, fontSize: 14 }}>
-                <strong>{team?.name ?? '…'}</strong>
-                {question && (
-                  <span style={{ color: '#999', marginLeft: 6 }}>— {question.price} очков</span>
-                )}
-              </div>
-              <button
-                onClick={() => doValidate({ claimId: c.id, approved: true })}
-                style={{
-                  background: '#1a1a1a',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '6px 14px',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontWeight: 500,
-                }}
-              >
-                Засчитать
-              </button>
-              <button
-                onClick={() => doValidate({ claimId: c.id, approved: false })}
-                style={{
-                  background: '#f5f5f5',
-                  color: '#999',
-                  border: '0.5px solid #e0e0e0',
-                  borderRadius: 8,
-                  padding: '6px 14px',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                Отклонить
-              </button>
+              Не засчитывать
+            </button>
+            <button
+              onClick={() => doValidate({ claimId: topClaim.id, approved: true })}
+              style={{
+                flex: 1,
+                background: '#1a1a1a',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                padding: '12px 14px',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Засчитать
+            </button>
+          </div>
+          {extra > 0 && (
+            <div style={{ fontSize: 12, color: '#999', textAlign: 'center', marginTop: 12 }}>
+              Ещё {extra} в очереди
             </div>
-          )
-        })}
+          )}
+        </div>
       </div>
-    </div>
-  )
+    )
+  })()
 
   const openToggle = isAdmin && (
     <div
@@ -591,7 +623,7 @@ export default function GameBoardPage() {
       </div>
 
       {openToggle}
-      {claimsBanner}
+      {claimsModal}
 
       {/* Tab bar */}
       <div className="tab-bar">

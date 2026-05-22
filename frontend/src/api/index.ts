@@ -130,6 +130,9 @@ export const setGameOpen = (gameId: string, open: boolean) =>
 export const addTeam = (gameId: string, name: string) =>
   api.post<GameTeam>(`/admin/games/${gameId}/teams`, { name })
 
+export const joinGame = (gameId: string, name: string) =>
+  api.post<GameTeam>(`/admin/games/${gameId}/join`, { name })
+
 export const listTeams = (gameId: string) =>
   api.get<GameTeam[]>(`/admin/games/${gameId}/teams`)
 

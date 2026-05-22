@@ -122,6 +122,10 @@ func (s *stubService) AddGameTeam(context.Context, uuid.UUID, string) (values.Ga
 	return values.GameTeam{}, errors.New("stub")
 }
 
+func (s *stubService) JoinGame(context.Context, uuid.UUID, string) (values.GameTeam, error) {
+	return values.GameTeam{}, errors.New("stub")
+}
+
 func (s *stubService) ListGameTeams(context.Context, uuid.UUID) ([]values.GameTeam, error) {
 	return nil, errors.New("stub")
 }

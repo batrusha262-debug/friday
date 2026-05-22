@@ -6,6 +6,7 @@ import (
 	"git.appkode.ru/pub/go/failure"
 	"github.com/google/uuid"
 
+	"friday/internal/pack/domain/enum"
 	"friday/internal/pack/domain/values"
 )
 
@@ -81,6 +82,45 @@ func (s *Service) FinishGame(ctx context.Context, id uuid.UUID) (values.Game, er
 func (s *Service) AddGameTeam(ctx context.Context, gameID uuid.UUID, name string) (values.GameTeam, error) {
 	if name == "" {
 		return values.GameTeam{}, failure.NewInvalidArgumentError("name is required")
+	}
+
+	e, err := s.repo.AddGameTeam(ctx, gameID, name)
+	if err != nil {
+		return values.GameTeam{}, err
+	}
+
+	return e.ToDomain(), nil
+}
+
+func (s *Service) JoinGame(ctx context.Context, gameID uuid.UUID, name string) (values.GameTeam, error) {
+	if name == "" {
+		return values.GameTeam{}, failure.NewInvalidArgumentError("name is required")
+	}
+
+	g, err := s.repo.GetGame(ctx, gameID)
+	if err != nil {
+		return values.GameTeam{}, err
+	}
+
+	domain := g.ToDomain()
+
+	if domain.Status.Not(enum.GameStatus.Waiting()) {
+		return values.GameTeam{}, failure.NewInvalidArgumentError("game is not accepting players")
+	}
+
+	if !domain.IsOpen {
+		return values.GameTeam{}, failure.NewInvalidArgumentError("game is closed for new players")
+	}
+
+	teams, err := s.repo.ListGameTeams(ctx, gameID)
+	if err != nil {
+		return values.GameTeam{}, err
+	}
+
+	for _, t := range teams {
+		if t.Name == name {
+			return t.ToDomain(), nil
+		}
 	}
 
 	e, err := s.repo.AddGameTeam(ctx, gameID, name)

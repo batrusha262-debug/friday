@@ -33,8 +33,16 @@ function useBoardData(gameId: string) {
     setLiveBoard(state.board)
   })
 
-  const gameQuery = useQuery({ queryKey: ['game', gameId], queryFn: () => getGame(gameId) })
-  const boardQuery = useQuery({ queryKey: ['board', gameId], queryFn: () => getBoard(gameId) })
+  const gameQuery = useQuery({
+    queryKey: ['game', gameId],
+    queryFn: () => getGame(gameId),
+    refetchInterval: 2000,
+  })
+  const boardQuery = useQuery({
+    queryKey: ['board', gameId],
+    queryFn: () => getBoard(gameId),
+    refetchInterval: 2000,
+  })
 
   const effectiveGame = liveGame ?? gameQuery.data ?? null
   const effectiveTeams: GameTeam[] = (liveBoard ?? boardQuery.data)?.teams ?? []

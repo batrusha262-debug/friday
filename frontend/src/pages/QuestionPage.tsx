@@ -194,37 +194,59 @@ export default function QuestionPage() {
               </div>
             )}
 
-            {!isAdmin && !claimConfirmed && (
-              <div>
-                <div className="text-sm text-mid text-center mb-8">
-                  Ваша команда ответила правильно?
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {(teams ?? []).map((team, i) => (
+            {!isAdmin && !claimConfirmed && (() => {
+              const myTeamId = localStorage.getItem(`game:${gameId}:teamId`)
+              const myTeam = myTeamId ? (teams ?? []).find(t => t.id === myTeamId) : null
+
+              if (myTeam) {
+                return (
+                  <div>
+                    <div className="text-sm text-mid text-center mb-8">
+                      Вы ответили правильно, <strong>{myTeam.name}</strong>?
+                    </div>
                     <button
-                      key={team.id}
-                      onClick={() => claim(team.id)}
+                      className="tbtn"
+                      onClick={() => claim(myTeam.id)}
                       disabled={isClaiming}
-                      style={{
-                        flex: 1,
-                        background: i === 0 ? '#1a1a1a' : '#f5f5f5',
-                        color: i === 0 ? '#fff' : '#333',
-                        border: i === 0 ? 'none' : '0.5px solid #e0e0e0',
-                        borderRadius: 10,
-                        padding: 12,
-                        fontSize: 14,
-                        fontWeight: i === 0 ? 500 : 400,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        opacity: isClaiming ? 0.5 : 1,
-                      }}
                     >
-                      {team.name}
+                      {isClaiming ? 'Отправляем…' : 'Засчитать мой ответ'}
                     </button>
-                  ))}
+                  </div>
+                )
+              }
+
+              return (
+                <div>
+                  <div className="text-sm text-mid text-center mb-8">
+                    Ваша команда ответила правильно?
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {(teams ?? []).map((team, i) => (
+                      <button
+                        key={team.id}
+                        onClick={() => claim(team.id)}
+                        disabled={isClaiming}
+                        style={{
+                          flex: '1 1 calc(50% - 4px)',
+                          background: i === 0 ? '#1a1a1a' : '#f5f5f5',
+                          color: i === 0 ? '#fff' : '#333',
+                          border: i === 0 ? 'none' : '0.5px solid #e0e0e0',
+                          borderRadius: 10,
+                          padding: 12,
+                          fontSize: 14,
+                          fontWeight: i === 0 ? 500 : 400,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          opacity: isClaiming ? 0.5 : 1,
+                        }}
+                      >
+                        {team.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {claimConfirmed && claimResult === null && (
               <div

@@ -56,6 +56,7 @@ type Service interface {
 	SetGameOpen(context.Context, uuid.UUID, bool) (values.Game, error)
 
 	AddGameTeam(context.Context, uuid.UUID, string) (values.GameTeam, error)
+	JoinGame(context.Context, uuid.UUID, string) (values.GameTeam, error)
 	ListGameTeams(context.Context, uuid.UUID) ([]values.GameTeam, error)
 	RemoveGameTeam(context.Context, uuid.UUID) error
 
@@ -106,6 +107,7 @@ func (h *Handler) Register(r chi.Router) {
 		r.Get("/games/{gameID}/events", httpx.Handler(h.gameEvents))
 		r.Post("/games/{gameID}/questions/{questionID}/answer", httpx.Handler(h.answerQuestion))
 		r.Post("/games/{gameID}/questions/{questionID}/claim", httpx.Handler(h.claimAnswer))
+		r.Post("/games/{gameID}/join", httpx.Handler(h.joinGame))
 
 		// Admin-only routes
 		r.Group(func(r chi.Router) {

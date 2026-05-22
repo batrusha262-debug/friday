@@ -146,6 +146,36 @@ func (h *Handler) addTeam(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (h *Handler) joinGame(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err = decode(r, &req); err != nil {
+		return err
+	}
+
+	if req.Name == "" {
+		if user, ok := authUserFromCtx(r); ok {
+			req.Name = user.Username
+		}
+	}
+
+	t, err := h.svc.JoinGame(r.Context(), gameID, req.Name)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusCreated, t)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
 func (h *Handler) listTeams(w http.ResponseWriter, r *http.Request) error {
 	gameID, err := parseID(r, "gameID")
 	if err != nil {

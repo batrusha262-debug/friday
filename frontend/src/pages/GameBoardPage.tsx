@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
@@ -12,6 +12,7 @@ import {
   deletePack,
   validateClaim,
   setGameOpen,
+  joinGame,
 } from '../api'
 import { useGameEvents } from '../hooks/useGameEvents'
 import { useAuth } from '../App'
@@ -222,7 +223,33 @@ export default function GameBoardPage() {
   const { role } = useAuth()
   const isAdmin = role === 'admin'
   const [tab, setTab] = useState<'board' | 'online'>('board')
+  const [joinError, setJoinError] = useState('')
   const { loading, game, teams, categories, prices, grid, pendingClaims, questionById } = useBoardData(gameId!)
+
+  const autoJoinedRef = useRef(false)
+
+  // Guest auto-joins as a team on entering an open waiting lobby
+  useEffect(() => {
+    if (isAdmin || !gameId || !game) return
+    if (game.status !== 'waiting' || !game.is_open) return
+    if (autoJoinedRef.current) return
+    if (localStorage.getItem(`game:${gameId}:teamId`)) return
+
+    const myName = localStorage.getItem('userName')?.trim()
+
+    if (!myName) return
+
+    autoJoinedRef.current = true
+    joinGame(gameId, myName)
+      .then(team => {
+        localStorage.setItem(`game:${gameId}:teamId`, team.id)
+        qc.invalidateQueries({ queryKey: ['board', gameId] })
+      })
+      .catch(err => {
+        autoJoinedRef.current = false
+        setJoinError(err instanceof Error ? err.message : 'Не удалось присоединиться')
+      })
+  }, [isAdmin, gameId, game, qc])
 
   const { mutate: doStart, isPending: isStarting } = useMutation({
     mutationFn: () => startGame(gameId!),
@@ -262,6 +289,7 @@ export default function GameBoardPage() {
     if (packId) localStorage.removeItem(`pack:${packId}:gameId`)
     localStorage.removeItem(`game:${gameId}:status`)
     localStorage.removeItem(`game:${gameId}:scale`)
+    localStorage.removeItem(`game:${gameId}:teamId`)
     qc.invalidateQueries({ queryKey: ['packs'] })
     navigate('/')
   }
@@ -508,7 +536,14 @@ export default function GameBoardPage() {
               }}
             >
               <div style={{ fontSize: 15, color: '#666' }}>Ждём начала игры…</div>
-              <div style={{ fontSize: 12, color: '#bbb', marginTop: 4 }}>Ведущий скоро запустит</div>
+              <div style={{ fontSize: 12, color: '#bbb', marginTop: 4 }}>
+                {localStorage.getItem(`game:${gameId}:teamId`)
+                  ? 'Вы в команде, ведущий скоро запустит'
+                  : 'Подключаемся…'}
+              </div>
+              {joinError && (
+                <div style={{ fontSize: 12, color: '#c00', marginTop: 8 }}>{joinError}</div>
+              )}
             </div>
           )}
         </div>

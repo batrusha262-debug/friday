@@ -20,6 +20,10 @@ func (s *Service) GetQuestion(ctx context.Context, id uuid.UUID) (values.Questio
 }
 
 func (s *Service) CreateQuestion(ctx context.Context, categoryID uuid.UUID, q values.Question) (values.Question, error) {
+	if q.Options == nil {
+		q.Options = []string{}
+	}
+
 	if err := validateQuestion(q); err != nil {
 		return values.Question{}, err
 	}
@@ -50,6 +54,10 @@ func (s *Service) ListQuestions(ctx context.Context, categoryID uuid.UUID) ([]va
 }
 
 func (s *Service) UpdateQuestion(ctx context.Context, id uuid.UUID, q values.Question) (values.Question, error) {
+	if q.Options == nil {
+		q.Options = []string{}
+	}
+
 	if err := validateQuestion(q); err != nil {
 		return values.Question{}, err
 	}

@@ -40,6 +40,7 @@ func (app *Application) Run() error {
 	config := cfg.Load()
 
 	pgConfig := postgres.Config{
+		DSNValue: config.Postgres.DSN,
 		Host:     config.Postgres.Host,
 		Port:     config.Postgres.Port,
 		User:     config.Postgres.User,

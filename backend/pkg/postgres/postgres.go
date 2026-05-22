@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	DSNValue string
 	Host     string
 	Port     string
 	User     string
@@ -16,6 +17,10 @@ type Config struct {
 }
 
 func (c Config) DSN() string {
+	if c.DSNValue != "" {
+		return c.DSNValue
+	}
+
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", c.User, c.Password, c.Host, c.Port, c.Database)
 }
 

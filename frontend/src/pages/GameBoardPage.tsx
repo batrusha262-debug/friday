@@ -71,7 +71,6 @@ function useBoardData(gameId: string) {
 
   const allQuestions = questionsQueries.data ?? {}
 
-  // flat map of questionId -> Question for claim lookups
   const questionById: Record<string, Question> = {}
   for (const qs of Object.values(allQuestions)) {
     for (const q of qs) {
@@ -100,6 +99,67 @@ function useBoardData(gameId: string) {
     pendingClaims,
     questionById,
   }
+}
+
+function OnlineTab({ teams, currentPickerId }: { teams: GameTeam[]; currentPickerId?: string }) {
+  const sorted = [...teams].sort((a, b) => b.score - a.score)
+
+  if (teams.length === 0) {
+    return (
+      <div className="empty">
+        <div className="empty-icon">👥</div>
+        Команд пока нет
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {sorted.map((team, i) => {
+        const isPicker = team.id === currentPickerId
+        const isFirst = i === 0
+
+        return (
+          <div
+            key={team.id}
+            style={{
+              background: isFirst ? '#1a1a1a' : '#fff',
+              borderRadius: 12,
+              padding: '14px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              outline: isPicker ? '2px solid #f0a500' : undefined,
+              outlineOffset: isPicker ? 2 : undefined,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: isFirst ? 'rgba(255,255,255,0.4)' : '#ccc',
+                width: 28,
+                textAlign: 'center',
+              }}
+            >
+              {i + 1}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 16, fontWeight: 500, color: isFirst ? '#fff' : '#1a1a1a' }}>
+                {team.name}
+              </div>
+              {isPicker && (
+                <div style={{ fontSize: 12, color: '#f0a500', marginTop: 2 }}>▶ сейчас ходит</div>
+              )}
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: isFirst ? '#fff' : '#1a1a1a' }}>
+              {team.score}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 function TeamsPanel({ teams, currentPickerId }: { teams: GameTeam[]; currentPickerId?: string }) {
@@ -138,10 +198,10 @@ function TeamsPanel({ teams, currentPickerId }: { teams: GameTeam[]; currentPick
               className={`score-card ${isLeading ? 'leading' : 'other'}`}
               style={{ outline: isPicker ? '2px solid #f0a500' : undefined, outlineOffset: 2 }}
             >
-              <div style={{ fontSize: 10, color: isLeading ? '#aaa' : '#999' }}>
+              <div style={{ fontSize: 11, color: isLeading ? '#aaa' : '#999' }}>
                 {team.name}
               </div>
-              <div style={{ fontSize: 16, fontWeight: 500, color: isLeading ? '#fff' : '#333' }}>
+              <div style={{ fontSize: 18, fontWeight: 500, color: isLeading ? '#fff' : '#333' }}>
                 {team.score}
               </div>
               {isPicker && (
@@ -161,6 +221,7 @@ export default function GameBoardPage() {
   const qc = useQueryClient()
   const { role } = useAuth()
   const isAdmin = role === 'admin'
+  const [tab, setTab] = useState<'board' | 'online'>('board')
   const { loading, game, teams, categories, prices, grid, pendingClaims, questionById } = useBoardData(gameId!)
 
   const { mutate: doStart, isPending: isStarting } = useMutation({
@@ -216,8 +277,8 @@ export default function GameBoardPage() {
 
   // Pending claims banner (admin only)
   const claimsBanner = isAdmin && pendingClaims.length > 0 && (
-    <div style={{ background: '#fffbe6', borderBottom: '1px solid #ffe58f', padding: '8px 12px' }}>
-      <div style={{ fontSize: 11, color: '#996600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+    <div style={{ background: '#fffbe6', borderBottom: '1px solid #ffe58f', padding: '10px 14px' }}>
+      <div style={{ fontSize: 12, color: '#996600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
         Ожидают подтверждения ({pendingClaims.length})
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -233,12 +294,12 @@ export default function GameBoardPage() {
                 alignItems: 'center',
                 gap: 8,
                 background: '#fff',
-                borderRadius: 8,
-                padding: '6px 10px',
+                borderRadius: 10,
+                padding: '8px 12px',
                 border: '0.5px solid #e0e0e0',
               }}
             >
-              <div style={{ flex: 1, fontSize: 13 }}>
+              <div style={{ flex: 1, fontSize: 14 }}>
                 <strong>{team?.name ?? '…'}</strong>
                 {question && (
                   <span style={{ color: '#999', marginLeft: 6 }}>— {question.price} очков</span>
@@ -250,11 +311,12 @@ export default function GameBoardPage() {
                   background: '#1a1a1a',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 12,
+                  borderRadius: 8,
+                  padding: '6px 14px',
+                  fontSize: 13,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
+                  fontWeight: 500,
                 }}
               >
                 Засчитать
@@ -265,9 +327,9 @@ export default function GameBoardPage() {
                   background: '#f5f5f5',
                   color: '#999',
                   border: '0.5px solid #e0e0e0',
-                  borderRadius: 6,
-                  padding: '4px 10px',
-                  fontSize: 12,
+                  borderRadius: 8,
+                  padding: '6px 14px',
+                  fontSize: 13,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
@@ -281,7 +343,53 @@ export default function GameBoardPage() {
     </div>
   )
 
-  // Lobby: game is waiting for start
+  const openToggle = isAdmin && (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 16px',
+        borderBottom: '0.5px solid #e0e0e0',
+        background: '#fafafa',
+      }}
+    >
+      <span style={{ fontSize: 14, color: '#333' }}>
+        {game?.is_open ? 'Игра открыта для гостей' : 'Игра закрыта (черновик)'}
+      </span>
+      <button
+        disabled={isTogglingOpen}
+        onClick={() => doToggleOpen(!game?.is_open)}
+        style={{
+          position: 'relative',
+          width: 44,
+          height: 24,
+          borderRadius: 12,
+          border: 'none',
+          background: game?.is_open ? '#1a1a1a' : '#ccc',
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+          flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            position: 'absolute',
+            top: 3,
+            left: game?.is_open ? 23 : 3,
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            background: '#fff',
+            transition: 'left 0.2s',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          }}
+        />
+      </button>
+    </div>
+  )
+
+  // Lobby: waiting for players
   if (game?.status === 'waiting') {
     return (
       <div className="page">
@@ -291,7 +399,7 @@ export default function GameBoardPage() {
               <path d="M12 5l-7 5 7 5" />
             </svg>
           </button>
-          <span className="tgh-title">Ожидание игроков</span>
+          <span className="tgh-title">Комната ожидания</span>
           {isAdmin && (
             <button className="tgh-action" onClick={handleDelete} disabled={isDeleting} title="Удалить игру">
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8">
@@ -301,75 +409,107 @@ export default function GameBoardPage() {
             </button>
           )}
         </div>
-        {isAdmin && (
+
+        {openToggle}
+
+        <div className="page-body" style={{ padding: 14 }}>
+          {/* Join code */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 16px',
-              borderBottom: '0.5px solid #e0e0e0',
-              background: '#fafafa',
-            }}
-          >
-            <span style={{ fontSize: 13, color: '#333' }}>
-              {game?.is_open ? 'Игра открыта для гостей' : 'Игра закрыта (черновик)'}
-            </span>
-            <button
-              disabled={isTogglingOpen}
-              onClick={() => doToggleOpen(!game?.is_open)}
-              style={{
-                position: 'relative',
-                width: 44,
-                height: 24,
-                borderRadius: 12,
-                border: 'none',
-                background: game?.is_open ? '#1a1a1a' : '#ccc',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                flexShrink: 0,
-              }}
-            >
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 3,
-                  left: game?.is_open ? 23 : 3,
-                  width: 18,
-                  height: 18,
-                  borderRadius: '50%',
-                  background: '#fff',
-                  transition: 'left 0.2s',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                }}
-              />
-            </button>
-          </div>
-        )}
-        <div className="page-body" style={{ padding: 16 }}>
-          <div
-            style={{
-              background: '#f5f5f5',
-              borderRadius: 10,
-              padding: '12px 16px',
-              marginBottom: 16,
+              background: '#fff',
+              borderRadius: 14,
+              padding: '18px 16px',
+              marginBottom: 14,
               textAlign: 'center',
+              border: '0.5px solid #e0e0e0',
             }}
           >
-            <div style={{ fontSize: 11, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>
+            <div style={{ fontSize: 12, color: '#999', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1.5 }}>
               Код для входа
             </div>
-            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: 5, fontFamily: 'monospace', color: '#1a1a1a' }}>
+            <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: 6, fontFamily: 'monospace', color: '#1a1a1a' }}>
               {gameId?.slice(0, 8).toUpperCase()}
+            </div>
+            <div style={{ fontSize: 12, color: '#bbb', marginTop: 8 }}>
+              Введите код на экране входа
             </div>
           </div>
 
-          <TeamsPanel teams={teams} />
+          {/* Teams list */}
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 14,
+              overflow: 'hidden',
+              marginBottom: 14,
+              border: '0.5px solid #e0e0e0',
+            }}
+          >
+            <div style={{ padding: '12px 16px', borderBottom: '0.5px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#1a1a1a' }}>Команды</span>
+              <span style={{ fontSize: 14, color: '#999' }}>{teams.length}</span>
+            </div>
+            {teams.length === 0 ? (
+              <div style={{ padding: '20px 16px', textAlign: 'center', color: '#bbb', fontSize: 14 }}>
+                Никто ещё не подключился
+              </div>
+            ) : (
+              teams.map((team, i) => (
+                <div
+                  key={team.id}
+                  style={{
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    borderBottom: i < teams.length - 1 ? '0.5px solid #f5f5f5' : undefined,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      background: '#1a1a1a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: 14,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {team.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: 15, color: '#1a1a1a' }}>{team.name}</span>
+                </div>
+              ))
+            )}
+          </div>
 
           {isAdmin && (
-            <button className="tbtn" onClick={() => doStart()} disabled={isStarting}>
-              {isStarting ? 'Запускаем…' : 'Начать игру'}
+            <button
+              className="tbtn"
+              onClick={() => doStart()}
+              disabled={isStarting || teams.length === 0}
+            >
+              {isStarting ? 'Запускаем…' : `Начать игру${teams.length > 0 ? ` (${teams.length} команд)` : ''}`}
             </button>
+          )}
+
+          {!isAdmin && (
+            <div
+              style={{
+                background: '#f5f5f5',
+                borderRadius: 12,
+                padding: '14px 16px',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: 15, color: '#666' }}>Ждём начала игры…</div>
+              <div style={{ fontSize: 12, color: '#bbb', marginTop: 4 }}>Ведущий скоро запустит</div>
+            </div>
           )}
         </div>
       </div>
@@ -407,113 +547,92 @@ export default function GameBoardPage() {
         )}
       </div>
 
-      {isAdmin && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '10px 16px',
-            borderBottom: '0.5px solid #e0e0e0',
-            background: '#fafafa',
-          }}
-        >
-          <span style={{ fontSize: 13, color: '#333' }}>
-            {game?.is_open ? 'Игра открыта для гостей' : 'Игра закрыта (черновик)'}
-          </span>
-          <button
-            disabled={isTogglingOpen}
-            onClick={() => doToggleOpen(!game?.is_open)}
-            style={{
-              position: 'relative',
-              width: 44,
-              height: 24,
-              borderRadius: 12,
-              border: 'none',
-              background: game?.is_open ? '#1a1a1a' : '#ccc',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-              flexShrink: 0,
-            }}
-          >
-            <span
-              style={{
-                position: 'absolute',
-                top: 3,
-                left: game?.is_open ? 23 : 3,
-                width: 18,
-                height: 18,
-                borderRadius: '50%',
-                background: '#fff',
-                transition: 'left 0.2s',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-              }}
-            />
-          </button>
-        </div>
-      )}
-
+      {openToggle}
       {claimsBanner}
 
-      <div className="page-body">
-        <div
-          className="board-grid"
-          style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+      {/* Tab bar */}
+      <div className="tab-bar">
+        <button
+          className={`tab-btn ${tab === 'board' ? 'active' : ''}`}
+          onClick={() => setTab('board')}
         >
-          {categories.map(cat => (
-            <div key={cat.id} className="qcell cat">
-              {cat.name}
-            </div>
-          ))}
+          Игровое поле
+        </button>
+        <button
+          className={`tab-btn ${tab === 'online' ? 'active' : ''}`}
+          onClick={() => setTab('online')}
+        >
+          Онлайн {teams.length > 0 && `(${teams.length})`}
+        </button>
+      </div>
 
-          {prices.map((price, pi) =>
-            categories.map((cat, ci) => {
-              const cell = grid[pi]?.[ci]
+      <div className="page-body">
+        {tab === 'board' && (
+          <>
+            <div
+              className="board-grid"
+              style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+            >
+              {categories.map(cat => (
+                <div key={cat.id} className="qcell cat">
+                  {cat.name}
+                </div>
+              ))}
 
-              if (!cell) return <div key={`${pi}-${ci}`} className="qcell empty">+</div>
+              {prices.map((price, pi) =>
+                categories.map((cat, ci) => {
+                  const cell = grid[pi]?.[ci]
 
-              if (cell.answered) {
-                return <div key={`${pi}-${ci}`} className="qcell used">{price}</div>
-              }
+                  if (!cell) return <div key={`${pi}-${ci}`} className="qcell empty">+</div>
 
-              if (!cell.question) {
-                if (!isAdmin) {
-                  return <div key={`${pi}-${ci}`} className="qcell empty" />
-                }
+                  if (cell.answered) {
+                    return <div key={`${pi}-${ci}`} className="qcell used">{price}</div>
+                  }
 
-                return (
-                  <button
-                    key={`${pi}-${ci}`}
-                    className="qcell empty"
-                    onClick={() => navigate(`/game/${gameId}/question/add`, { state: { categoryId: cat.id, price } })}
-                  >
-                    +
-                  </button>
-                )
-              }
-
-              return (
-                <button
-                  key={`${pi}-${ci}`}
-                  className="qcell"
-                  onClick={() => {
-                    if (isAdmin) {
-                      navigate(`/game/${gameId}/question/add`, {
-                        state: { categoryId: cat.id, price, questionId: cell.question!.id },
-                      })
-                    } else {
-                      navigate(`/game/${gameId}/question/${cell.question!.id}`)
+                  if (!cell.question) {
+                    if (!isAdmin) {
+                      return <div key={`${pi}-${ci}`} className="qcell empty" />
                     }
-                  }}
-                >
-                  {price}
-                </button>
-              )
-            }),
-          )}
-        </div>
 
-        <TeamsPanel teams={teams} currentPickerId={game?.current_picker_id} />
+                    return (
+                      <button
+                        key={`${pi}-${ci}`}
+                        className="qcell empty"
+                        onClick={() => navigate(`/game/${gameId}/question/add`, { state: { categoryId: cat.id, price } })}
+                      >
+                        +
+                      </button>
+                    )
+                  }
+
+                  return (
+                    <button
+                      key={`${pi}-${ci}`}
+                      className="qcell"
+                      onClick={() => {
+                        if (isAdmin) {
+                          navigate(`/game/${gameId}/question/add`, {
+                            state: { categoryId: cat.id, price, questionId: cell.question!.id },
+                          })
+                        } else {
+                          navigate(`/game/${gameId}/question/${cell.question!.id}`)
+                        }
+                      }}
+                    >
+                      {price}
+                    </button>
+                  )
+                }),
+              )}
+            </div>
+
+            <TeamsPanel teams={teams} currentPickerId={game?.current_picker_id} />
+          </>
+        )}
+
+        {tab === 'online' && (
+          <OnlineTab teams={teams} currentPickerId={game?.current_picker_id} />
+        )}
       </div>
     </div>
   )

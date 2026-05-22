@@ -6,6 +6,7 @@ type Config struct {
 	HTTPAddr string
 	Postgres PostgresConfig
 	Resend   ResendConfig
+	SMTP     SMTPConfig
 }
 
 type PostgresConfig struct {
@@ -22,6 +23,14 @@ type ResendConfig struct {
 	From   string
 }
 
+type SMTPConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	From     string
+}
+
 func Load() Config {
 	return Config{
 		HTTPAddr: httpAddr(),
@@ -36,6 +45,13 @@ func Load() Config {
 		Resend: ResendConfig{
 			APIKey: getenv("RESEND_API_KEY", ""),
 			From:   getenv("RESEND_FROM", "onboarding@resend.dev"),
+		},
+		SMTP: SMTPConfig{
+			Host:     getenv("SMTP_HOST", ""),
+			Port:     getenv("SMTP_PORT", "587"),
+			Username: getenv("SMTP_USERNAME", ""),
+			Password: getenv("SMTP_PASSWORD", ""),
+			From:     getenv("SMTP_FROM", getenv("SMTP_USERNAME", "")),
 		},
 	}
 }

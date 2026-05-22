@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoad_defaults(t *testing.T) {
-	for _, key := range []string{"HTTP_ADDR", "POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "RESEND_API_KEY", "RESEND_FROM"} {
+	for _, key := range []string{"HTTP_ADDR", "PORT", "DATABASE_URL", "POSTGRES_URL", "POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "RESEND_API_KEY", "RESEND_FROM", "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD", "SMTP_FROM"} {
 		t.Setenv(key, "")
 	}
 
@@ -23,6 +23,11 @@ func TestLoad_defaults(t *testing.T) {
 	assert.Equal(t, "friday", c.Postgres.Database)
 	assert.Equal(t, "", c.Resend.APIKey)
 	assert.Equal(t, "onboarding@resend.dev", c.Resend.From)
+	assert.Equal(t, "", c.SMTP.Host)
+	assert.Equal(t, "587", c.SMTP.Port)
+	assert.Equal(t, "", c.SMTP.Username)
+	assert.Equal(t, "", c.SMTP.Password)
+	assert.Equal(t, "", c.SMTP.From)
 }
 
 func TestLoad_envOverride(t *testing.T) {
@@ -34,6 +39,11 @@ func TestLoad_envOverride(t *testing.T) {
 	t.Setenv("POSTGRES_DB", "myapp")
 	t.Setenv("RESEND_API_KEY", "re_test")
 	t.Setenv("RESEND_FROM", "Friday <auth@example.com>")
+	t.Setenv("SMTP_HOST", "smtp.example.com")
+	t.Setenv("SMTP_PORT", "2525")
+	t.Setenv("SMTP_USERNAME", "auth@example.com")
+	t.Setenv("SMTP_PASSWORD", "smtp-secret")
+	t.Setenv("SMTP_FROM", "Friday <auth@example.com>")
 
 	c := cfg.Load()
 
@@ -45,4 +55,9 @@ func TestLoad_envOverride(t *testing.T) {
 	assert.Equal(t, "myapp", c.Postgres.Database)
 	assert.Equal(t, "re_test", c.Resend.APIKey)
 	assert.Equal(t, "Friday <auth@example.com>", c.Resend.From)
+	assert.Equal(t, "smtp.example.com", c.SMTP.Host)
+	assert.Equal(t, "2525", c.SMTP.Port)
+	assert.Equal(t, "auth@example.com", c.SMTP.Username)
+	assert.Equal(t, "smtp-secret", c.SMTP.Password)
+	assert.Equal(t, "Friday <auth@example.com>", c.SMTP.From)
 }

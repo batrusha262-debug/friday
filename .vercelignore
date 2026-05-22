@@ -1,0 +1,11 @@
+.git
+.gocache
+.gomodcache
+backend/.vercel
+backend/.env
+backend/.env*
+backend/bin
+backend/graphify-out
+frontend/.vercel
+frontend/node_modules
+frontend/dist

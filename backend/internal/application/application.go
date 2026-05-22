@@ -65,6 +65,13 @@ func (app *Application) Run() error {
 	m := mailer.New(
 		config.Resend.APIKey,
 		config.Resend.From,
+		mailer.SMTPConfig{
+			Host:     config.SMTP.Host,
+			Port:     config.SMTP.Port,
+			Username: config.SMTP.Username,
+			Password: config.SMTP.Password,
+			From:     config.SMTP.From,
+		},
 	)
 
 	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db), m), ws.NewHub())

@@ -8,6 +8,7 @@ import (
 
 	"friday/internal/pack/domain/enum"
 	"friday/internal/pack/domain/values"
+	"friday/internal/pack/entity"
 )
 
 func (s *Service) CreateGame(ctx context.Context, packID, hostID uuid.UUID) (values.Game, error) {
@@ -247,13 +248,13 @@ func (s *Service) SetGameOpen(ctx context.Context, id uuid.UUID, open bool) (val
 	return e.ToDomain(), nil
 }
 
-func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UUID, teamID, wrongTeamID *uuid.UUID) (values.GameQuestionState, error) {
-	stateEntity, err := s.repo.MarkQuestionAnswered(ctx, gameID, questionID, teamID)
-	if err != nil {
-		return values.GameQuestionState{}, err
-	}
-
+func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UUID, teamID, wrongTeamID *uuid.UUID, optionIdx *int16) (values.GameQuestionState, error) {
 	if teamID != nil {
+		stateEntity, err := s.repo.MarkQuestionAnswered(ctx, gameID, questionID, teamID)
+		if err != nil {
+			return values.GameQuestionState{}, err
+		}
+
 		question, err := s.repo.GetQuestion(ctx, questionID)
 		if err != nil {
 			return values.GameQuestionState{}, err
@@ -266,15 +267,62 @@ func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UU
 		if err = s.repo.SetCurrentPicker(ctx, gameID, teamID); err != nil {
 			return values.GameQuestionState{}, err
 		}
+
+		return stateEntity.ToDomain(), nil
 	}
 
-	if teamID == nil && wrongTeamID != nil {
+	var stateEntity entity.GameQuestionState
+
+	if optionIdx != nil {
+		e, err := s.repo.RecordWrongOption(ctx, gameID, questionID, *optionIdx)
+		if err != nil {
+			return values.GameQuestionState{}, err
+		}
+
+		stateEntity = e
+	} else {
+		e, err := s.repo.EnsureQuestionState(ctx, gameID, questionID)
+		if err != nil {
+			return values.GameQuestionState{}, err
+		}
+
+		stateEntity = e
+	}
+
+	if wrongTeamID != nil {
 		if _, err := s.repo.CreateMiniGame(ctx, gameID, questionID, wrongTeamID); err != nil {
 			return values.GameQuestionState{}, err
 		}
 	}
 
 	return stateEntity.ToDomain(), nil
+}
+
+func (s *Service) OpenQuestion(ctx context.Context, gameID, questionID uuid.UUID) (values.GameQuestionState, error) {
+	e, err := s.repo.EnsureQuestionState(ctx, gameID, questionID)
+	if err != nil {
+		return values.GameQuestionState{}, err
+	}
+
+	return e.ToDomain(), nil
+}
+
+func (s *Service) RevealNextOption(ctx context.Context, gameID, questionID uuid.UUID) (values.GameQuestionState, error) {
+	e, err := s.repo.RevealNextOption(ctx, gameID, questionID)
+	if err != nil {
+		return values.GameQuestionState{}, err
+	}
+
+	return e.ToDomain(), nil
+}
+
+func (s *Service) StartQuestionTimer(ctx context.Context, gameID, questionID uuid.UUID) (values.GameQuestionState, error) {
+	e, err := s.repo.StartQuestionTimer(ctx, gameID, questionID)
+	if err != nil {
+		return values.GameQuestionState{}, err
+	}
+
+	return e.ToDomain(), nil
 }
 
 func (s *Service) ClaimMiniGame(ctx context.Context, miniGameID, teamID uuid.UUID) (values.MiniGame, error) {

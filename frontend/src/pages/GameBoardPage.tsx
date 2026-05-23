@@ -77,7 +77,7 @@ function useBoardData(gameId: string) {
   })
 
   const prices = JSON.parse(localStorage.getItem(`game:${gameId}:scale`) ?? '[100,200,300,400,500]') as number[]
-  const answeredIds = new Set(effectiveStates.map(s => s.question_id))
+  const answeredIds = new Set(effectiveStates.filter(s => !!s.answered_by).map(s => s.question_id))
   const stateByQuestion = Object.fromEntries(effectiveStates.map(s => [s.question_id, s]))
 
   const allQuestions = questionsQueries.data ?? {}
@@ -100,6 +100,13 @@ function useBoardData(gameId: string) {
     }),
   )
 
+  const totalExpected = prices.length * catList.length
+  const filledCount = grid.reduce(
+    (acc, row) => acc + row.reduce((a, c) => a + (c.question ? 1 : 0), 0),
+    0,
+  )
+  const allFilled = totalExpected > 0 && filledCount === totalExpected
+
   return {
     loading: gameQuery.isLoading || boardQuery.isLoading || rounds.isLoading || categories.isLoading,
     game: effectiveGame,
@@ -110,6 +117,9 @@ function useBoardData(gameId: string) {
     pendingClaims,
     questionById,
     miniGame,
+    allFilled,
+    filledCount,
+    totalExpected,
   }
 }
 
@@ -239,6 +249,7 @@ function MiniGameOverlay({
   teams: GameTeam[]
 }) {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const [now, setNow] = useState(() => Date.now())
   const [outcome, setOutcome] = useState<'win' | 'lose' | null>(null)
 
@@ -247,6 +258,15 @@ function MiniGameOverlay({
 
     return () => clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    if (outcome !== 'win') return
+    const t = setTimeout(() => {
+      navigate(`/game/${gameId}/question/${miniGame.question_id}`)
+    }, 1200)
+
+    return () => clearTimeout(t)
+  }, [outcome, gameId, miniGame.question_id, navigate])
 
   const { mutate: claim, isPending } = useMutation({
     mutationFn: () => claimMiniGame(gameId, miniGame.id, myTeamId!),
@@ -391,7 +411,7 @@ export default function GameBoardPage() {
   const isAdmin = role === 'admin'
   const [tab, setTab] = useState<'board' | 'online'>('board')
   const [joinError, setJoinError] = useState('')
-  const { loading, game, teams, categories, prices, grid, pendingClaims, questionById, miniGame } = useBoardData(gameId!)
+  const { loading, game, teams, categories, prices, grid, pendingClaims, questionById, miniGame, allFilled, filledCount, totalExpected } = useBoardData(gameId!)
 
   const autoJoinedRef = useRef(false)
 
@@ -570,6 +590,7 @@ export default function GameBoardPage() {
     )
   })()
 
+  const canOpen = allFilled
   const openToggle = isAdmin && (
     <div
       style={{
@@ -581,11 +602,18 @@ export default function GameBoardPage() {
         background: '#fafafa',
       }}
     >
-      <span style={{ fontSize: 14, color: '#333' }}>
-        {game?.is_open ? 'Игра открыта для гостей' : 'Игра закрыта (черновик)'}
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontSize: 14, color: '#333' }}>
+          {game?.is_open ? 'Игра открыта для гостей' : 'Игра закрыта (черновик)'}
+        </span>
+        {!canOpen && (
+          <span style={{ fontSize: 11, color: '#c00', marginTop: 2 }}>
+            Заполните все вопросы ({filledCount}/{totalExpected})
+          </span>
+        )}
+      </div>
       <button
-        disabled={isTogglingOpen}
+        disabled={isTogglingOpen || (!game?.is_open && !canOpen)}
         onClick={() => doToggleOpen(!game?.is_open)}
         style={{
           position: 'relative',
@@ -594,7 +622,8 @@ export default function GameBoardPage() {
           borderRadius: 12,
           border: 'none',
           background: game?.is_open ? '#1a1a1a' : '#ccc',
-          cursor: 'pointer',
+          cursor: !game?.is_open && !canOpen ? 'not-allowed' : 'pointer',
+          opacity: !game?.is_open && !canOpen ? 0.5 : 1,
           transition: 'background 0.2s',
           flexShrink: 0,
         }}
@@ -719,9 +748,13 @@ export default function GameBoardPage() {
             <button
               className="tbtn"
               onClick={() => doStart()}
-              disabled={isStarting || teams.length === 0}
+              disabled={isStarting || teams.length === 0 || !allFilled}
             >
-              {isStarting ? 'Запускаем…' : `Начать игру${teams.length > 0 ? ` (${teams.length} команд)` : ''}`}
+              {isStarting
+                ? 'Запускаем…'
+                : !allFilled
+                  ? `Заполните вопросы (${filledCount}/${totalExpected})`
+                  : `Начать игру${teams.length > 0 ? ` (${teams.length} команд)` : ''}`}
             </button>
           )}
 
@@ -847,11 +880,18 @@ export default function GameBoardPage() {
                     )
                   }
 
+                  const myTeamId = localStorage.getItem(`game:${gameId}:teamId`)
+                  const isPicker = !isAdmin && myTeamId === game?.current_picker_id
+                  const canClick = isAdmin || isPicker
+
                   return (
                     <button
                       key={`${pi}-${ci}`}
                       className="qcell"
+                      disabled={!canClick}
+                      style={!canClick ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
                       onClick={() => {
+                        if (!canClick) return
                         if (isAdmin) {
                           navigate(`/game/${gameId}/question/add`, {
                             state: { categoryId: cat.id, price, questionId: cell.question!.id },

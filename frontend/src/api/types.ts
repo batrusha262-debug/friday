@@ -73,6 +73,9 @@ export interface GameQuestionState {
   question_id: string
   answered_by?: string
   answered_at?: string
+  revealed_count: number
+  timer_started_at?: string
+  wrong_options: number[]
 }
 
 export interface AnswerClaim {

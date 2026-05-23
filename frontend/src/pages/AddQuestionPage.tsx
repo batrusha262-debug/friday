@@ -34,7 +34,6 @@ export default function AddQuestionPage() {
   const [questionText, setQuestionText] = useState('')
   const [options, setOptions] = useState<string[]>(['', '', '', ''])
   const [correctIdx, setCorrectIdx] = useState(0)
-  const [comment, setComment] = useState('')
   const [error, setError] = useState('')
 
   const editingId = state?.questionId
@@ -51,7 +50,6 @@ export default function AddQuestionPage() {
     const opts = q.options && q.options.length === 4 ? q.options : ['', '', '', '']
     setOptions(opts)
     setCorrectIdx(q.correct_option ?? 0)
-    setComment(q.comment ?? '')
   }, [existingQuestion.data])
 
   const effectiveCatId = catId || catList[0]?.id || ''
@@ -79,7 +77,6 @@ export default function AddQuestionPage() {
           type: existingQuestion.data?.type ?? 'standard',
           question: questionText.trim(),
           answer: correctAnswer(),
-          comment: comment.trim() || undefined,
           options: opts,
           correct_option: correctIdx,
         })
@@ -93,7 +90,6 @@ export default function AddQuestionPage() {
         type: 'standard',
         question: questionText.trim(),
         answer: correctAnswer(),
-        comment: comment.trim() || undefined,
         order_num: orderNum,
         options: opts,
         correct_option: correctIdx,
@@ -120,7 +116,6 @@ export default function AddQuestionPage() {
         type: 'standard',
         question: questionText.trim(),
         answer: correctAnswer(),
-        comment: comment.trim() || undefined,
         order_num: orderNum,
         options: opts,
         correct_option: correctIdx,
@@ -132,7 +127,6 @@ export default function AddQuestionPage() {
       setQuestionText('')
       setOptions(['', '', '', ''])
       setCorrectIdx(0)
-      setComment('')
       setError('')
     },
     onError: err => {
@@ -268,14 +262,6 @@ export default function AddQuestionPage() {
                   </label>
                 ))}
               </div>
-
-              <span className="tlabel">Подсказка для ведущего (необязательно)</span>
-              <input
-                className="tinput"
-                placeholder="Доп. контекст или источник…"
-                value={comment}
-                onChange={e => setComment(e.target.value)}
-              />
 
               {error && (
                 <div style={{ fontSize: 12, color: '#c00', marginBottom: 8 }}>{error}</div>

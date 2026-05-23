@@ -151,6 +151,22 @@ func (r *repoStub) ListGameQuestionStates(context.Context, uuid.UUID) ([]entity.
 	return nil, nil
 }
 
+func (r *repoStub) EnsureQuestionState(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error) {
+	return entity.GameQuestionState{}, nil
+}
+
+func (r *repoStub) RecordWrongOption(context.Context, uuid.UUID, uuid.UUID, int16) (entity.GameQuestionState, error) {
+	return entity.GameQuestionState{}, nil
+}
+
+func (r *repoStub) RevealNextOption(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error) {
+	return entity.GameQuestionState{}, nil
+}
+
+func (r *repoStub) StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error) {
+	return entity.GameQuestionState{}, nil
+}
+
 func (r *repoStub) SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error { return nil }
 
 func (r *repoStub) CreateUser(context.Context, string) (entity.User, error) { return entity.User{}, nil }
@@ -444,7 +460,7 @@ func TestAnswerQuestion_withTeam_awardsPoints(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), gameID, questionID, &teamID, nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), gameID, questionID, &teamID, nil, nil)
 
 	require.NoError(t, err)
 	assert.True(t, awardCalled, "AwardTeamPoints was not called")
@@ -462,7 +478,7 @@ func TestAnswerQuestion_withoutTeam_doesNotAwardPoints(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil, nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil, nil, nil)
 
 	require.NoError(t, err)
 	assert.False(t, awardCalled, "AwardTeamPoints should not be called when teamID is nil")
@@ -470,6 +486,7 @@ func TestAnswerQuestion_withoutTeam_doesNotAwardPoints(t *testing.T) {
 
 func TestAnswerQuestion_repoError_propagates(t *testing.T) {
 	repoErr := errors.New("db down")
+	teamID := uuid.New()
 
 	repo := &repoStub{
 		markQuestionAnswered: func(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.GameQuestionState, error) {
@@ -477,7 +494,7 @@ func TestAnswerQuestion_repoError_propagates(t *testing.T) {
 		},
 	}
 
-	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), nil, nil)
+	_, err := service.NewService(repo, nil).AnswerQuestion(context.Background(), uuid.New(), uuid.New(), &teamID, nil, nil)
 
 	assert.ErrorIs(t, err, repoErr)
 }

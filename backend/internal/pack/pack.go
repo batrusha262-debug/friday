@@ -62,6 +62,10 @@ type Repository interface {
 	SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error
 
 	MarkQuestionAnswered(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.GameQuestionState, error)
+	EnsureQuestionState(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
+	RecordWrongOption(context.Context, uuid.UUID, uuid.UUID, int16) (entity.GameQuestionState, error)
+	RevealNextOption(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
+	StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
 	ListGameQuestionStates(context.Context, uuid.UUID) ([]entity.GameQuestionState, error)
 
 	ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (entity.AnswerClaim, error)

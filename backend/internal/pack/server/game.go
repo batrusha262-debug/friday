@@ -313,12 +313,79 @@ func (h *Handler) answerQuestion(w http.ResponseWriter, r *http.Request) error {
 	var req struct {
 		TeamID      *uuid.UUID `json:"team_id"`
 		WrongTeamID *uuid.UUID `json:"wrong_team_id"`
+		OptionIdx   *int16     `json:"option_idx"`
 	}
 	if err = decode(r, &req); err != nil {
 		return err
 	}
 
-	state, err := h.svc.AnswerQuestion(r.Context(), gameID, questionID, req.TeamID, req.WrongTeamID)
+	state, err := h.svc.AnswerQuestion(r.Context(), gameID, questionID, req.TeamID, req.WrongTeamID, req.OptionIdx)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, state)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
+func (h *Handler) openQuestion(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	questionID, err := parseID(r, "questionID")
+	if err != nil {
+		return err
+	}
+
+	state, err := h.svc.OpenQuestion(r.Context(), gameID, questionID)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, state)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
+func (h *Handler) revealNextOption(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	questionID, err := parseID(r, "questionID")
+	if err != nil {
+		return err
+	}
+
+	state, err := h.svc.RevealNextOption(r.Context(), gameID, questionID)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, state)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
+func (h *Handler) startQuestionTimer(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	questionID, err := parseID(r, "questionID")
+	if err != nil {
+		return err
+	}
+
+	state, err := h.svc.StartQuestionTimer(r.Context(), gameID, questionID)
 	if err != nil {
 		return err
 	}

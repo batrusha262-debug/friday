@@ -335,5 +335,9 @@ func (s *Service) ClaimMiniGame(ctx context.Context, miniGameID, teamID uuid.UUI
 		return values.MiniGame{}, err
 	}
 
+	if _, err = s.repo.OpenQuestionForRace(ctx, mg.GameID, mg.QuestionID); err != nil {
+		return values.MiniGame{}, err
+	}
+
 	return mg.ToDomain(), nil
 }

@@ -1,7 +1,14 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { listPacks, logout, findGameByCode, getGameByPack } from '../api'
+import {
+  deleteGame,
+  deletePack,
+  findGameByCode,
+  getGameByPack,
+  listPacks,
+  logout,
+} from '../api'
 import { useAuth } from '../App'
 import type { Pack } from '../api/types'
 
@@ -26,12 +33,47 @@ const ICONS = ['#1a1a1a', '#333', '#555', '#666', '#777', '#888']
 
 export default function PackListPage() {
   const navigate = useNavigate()
+  const qc = useQueryClient()
   const { role } = useAuth()
   const isAdmin = role === 'admin'
   const [joinCode, setJoinCode] = useState('')
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
   const [joinModal, setJoinModal] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function handleDeletePack(pack: Pack, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!window.confirm(`Удалить игру «${pack.title}»? Это действие нельзя отменить.`)) return
+
+    setDeletingId(pack.id)
+    try {
+      let gameId = localStorage.getItem(`pack:${pack.id}:gameId`)
+      if (!gameId) {
+        try {
+          const game = await getGameByPack(pack.id)
+          gameId = game.id
+        } catch {
+          gameId = null
+        }
+      }
+      if (gameId) {
+        try { await deleteGame(gameId) } catch {}
+      }
+      await deletePack(pack.id)
+      localStorage.removeItem(`pack:${pack.id}:gameId`)
+      if (gameId) {
+        localStorage.removeItem(`game:${gameId}:status`)
+        localStorage.removeItem(`game:${gameId}:scale`)
+        localStorage.removeItem(`game:${gameId}:teamId`)
+      }
+      await qc.invalidateQueries({ queryKey: ['packs'] })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Не удалось удалить игру')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault()
@@ -263,6 +305,38 @@ export default function PackListPage() {
                         <path d="M8 5l6 5-6 5" />
                       </svg>
                     </div>
+
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeletePack(pack, e)}
+                        disabled={deletingId === pack.id}
+                        title="Удалить игру"
+                        aria-label="Удалить игру"
+                        style={{
+                          marginLeft: 8,
+                          width: 32,
+                          height: 32,
+                          border: 'none',
+                          borderRadius: 8,
+                          background: '#fdecec',
+                          color: '#c00',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: deletingId === pack.id ? 'wait' : 'pointer',
+                          opacity: deletingId === pack.id ? 0.5 : 1,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 6h12" />
+                          <path d="M8 6V4h4v2" />
+                          <path d="M6 6l1 10h6l1-10" />
+                          <path d="M9 9v5M11 9v5" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                   {i < packs.length - 1 && <div className="divider" />}
                 </div>

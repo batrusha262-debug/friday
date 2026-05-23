@@ -167,7 +167,7 @@ export default function PackListPage() {
                   />
                   <button
                     type="submit"
-                    disabled={joining || joinCode.length < 4}
+                    disabled={joining || joinCode.length < 2}
                     style={{
                       background: '#1a1a1a',
                       color: '#fff',
@@ -176,7 +176,7 @@ export default function PackListPage() {
                       padding: '9px 16px',
                       fontSize: 14,
                       cursor: 'pointer',
-                      opacity: joinCode.length < 4 ? 0.4 : 1,
+                      opacity: joinCode.length < 2 ? 0.4 : 1,
                     }}
                   >
                     {joining ? '…' : 'Войти'}
@@ -252,7 +252,7 @@ export default function PackListPage() {
                     type="submit"
                     className="tbtn"
                     style={{ flex: 1 }}
-                    disabled={joining || joinCode.length < 4}
+                    disabled={joining || joinCode.length < 2}
                   >
                     {joining ? '…' : 'Войти'}
                   </button>

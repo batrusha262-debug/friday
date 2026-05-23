@@ -894,7 +894,7 @@ export default function GameBoardPage() {
                       style={!canClick ? { opacity: 0.6, cursor: 'not-allowed' } : undefined}
                       onClick={() => {
                         if (!canClick) return
-                        if (isAdmin) {
+                        if (isAdmin && game?.status === 'waiting') {
                           navigate(`/game/${gameId}/question/add`, {
                             state: { categoryId: cat.id, price, questionId: cell.question!.id },
                           })

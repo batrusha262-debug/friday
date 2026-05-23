@@ -53,6 +53,7 @@ type Service interface {
 	DeleteGame(context.Context, uuid.UUID) error
 	StartGame(context.Context, uuid.UUID) (values.Game, error)
 	FinishGame(context.Context, uuid.UUID) (values.Game, error)
+	ResetGame(context.Context, uuid.UUID) (values.Game, error)
 	SetGameOpen(context.Context, uuid.UUID, bool) (values.Game, error)
 
 	AddGameTeam(context.Context, uuid.UUID, string) (values.GameTeam, error)
@@ -145,6 +146,7 @@ func (h *Handler) Register(r chi.Router) {
 			r.Delete("/games/{gameID}", httpx.Handler(h.deleteGame))
 			r.Post("/games/{gameID}/start", httpx.Handler(h.startGame))
 			r.Post("/games/{gameID}/finish", httpx.Handler(h.finishGame))
+			r.Post("/games/{gameID}/reset", httpx.Handler(h.resetGame))
 			r.Patch("/games/{gameID}/open", httpx.Handler(h.setGameOpen))
 
 			r.Post("/games/{gameID}/teams", httpx.Handler(h.addTeam))

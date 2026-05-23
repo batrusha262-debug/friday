@@ -115,6 +115,7 @@ func (r *repoStub) FindLatestGameByPack(context.Context, uuid.UUID) (entity.Game
 func (r *repoStub) DeleteGame(context.Context, uuid.UUID) error                           { return nil }
 func (r *repoStub) StartGame(context.Context, uuid.UUID) (entity.Game, error)             { return entity.Game{}, nil }
 func (r *repoStub) FinishGame(context.Context, uuid.UUID) (entity.Game, error)            { return entity.Game{}, nil }
+func (r *repoStub) ResetGameProgress(context.Context, uuid.UUID) (entity.Game, error)     { return entity.Game{}, nil }
 func (r *repoStub) SetGameOpen(context.Context, uuid.UUID, bool) (entity.Game, error)     { return entity.Game{}, nil }
 
 func (r *repoStub) AddGameTeam(ctx context.Context, gameID uuid.UUID, name string) (entity.GameTeam, error) {

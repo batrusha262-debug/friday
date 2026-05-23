@@ -80,6 +80,15 @@ func (s *Service) FinishGame(ctx context.Context, id uuid.UUID) (values.Game, er
 	return e.ToDomain(), nil
 }
 
+func (s *Service) ResetGame(ctx context.Context, id uuid.UUID) (values.Game, error) {
+	e, err := s.repo.ResetGameProgress(ctx, id)
+	if err != nil {
+		return values.Game{}, err
+	}
+
+	return e.ToDomain(), nil
+}
+
 func (s *Service) AddGameTeam(ctx context.Context, gameID uuid.UUID, name string) (values.GameTeam, error) {
 	if name == "" {
 		return values.GameTeam{}, failure.NewInvalidArgumentError("name is required")

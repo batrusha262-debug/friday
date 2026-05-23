@@ -14,6 +14,7 @@ import {
   setGameOpen,
   joinGame,
   claimMiniGame,
+  resetGame,
 } from '../api'
 import { useGameEvents } from '../hooks/useGameEvents'
 import { useAuth } from '../App'
@@ -411,6 +412,9 @@ export default function GameBoardPage() {
   const isAdmin = role === 'admin'
   const [tab, setTab] = useState<'board' | 'online'>('board')
   const [joinError, setJoinError] = useState('')
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetText, setResetText] = useState('')
+  const [resetError, setResetError] = useState('')
   const { loading, game, teams, categories, prices, grid, pendingClaims, questionById, miniGame, allFilled, filledCount, totalExpected } = useBoardData(gameId!)
 
   const autoJoinedRef = useRef(false)
@@ -474,6 +478,21 @@ export default function GameBoardPage() {
       validateClaim(claimId, approved),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['board', gameId] })
+    },
+  })
+
+  const RESET_PHRASE = '67 крутой мем'
+  const { mutate: doReset, isPending: isResetting } = useMutation({
+    mutationFn: () => resetGame(gameId!, resetText),
+    onSuccess: () => {
+      setResetOpen(false)
+      setResetText('')
+      setResetError('')
+      qc.invalidateQueries({ queryKey: ['game', gameId] })
+      qc.invalidateQueries({ queryKey: ['board', gameId] })
+    },
+    onError: (err: unknown) => {
+      setResetError(err instanceof Error ? err.message : 'Не удалось сбросить игру')
     },
   })
 
@@ -602,6 +621,119 @@ export default function GameBoardPage() {
       </div>
     )
   })()
+
+  const resetModal = isAdmin && resetOpen && (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.45)',
+        zIndex: 1100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 16,
+          padding: 20,
+          width: '100%',
+          maxWidth: 360,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+        }}
+      >
+        <div
+          style={{
+            fontSize: 12,
+            color: '#c00',
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            marginBottom: 10,
+            textAlign: 'center',
+          }}
+        >
+          Сброс игры
+        </div>
+        <div style={{ fontSize: 15, color: '#1a1a1a', textAlign: 'center', marginBottom: 6 }}>
+          Все ответы, очки и текущий ход будут сброшены.
+        </div>
+        <div style={{ fontSize: 13, color: '#666', textAlign: 'center', marginBottom: 14 }}>
+          Чтобы подтвердить, введите фразу:
+          <div style={{ fontFamily: 'monospace', color: '#1a1a1a', marginTop: 4 }}>
+            {RESET_PHRASE}
+          </div>
+        </div>
+        <input
+          type="text"
+          value={resetText}
+          onChange={e => {
+            setResetText(e.target.value)
+            setResetError('')
+          }}
+          placeholder={RESET_PHRASE}
+          style={{
+            width: '100%',
+            padding: '12px 14px',
+            borderRadius: 10,
+            border: '0.5px solid #e0e0e0',
+            fontSize: 15,
+            marginBottom: 10,
+            fontFamily: 'inherit',
+            boxSizing: 'border-box',
+          }}
+          autoFocus
+        />
+        {resetError && (
+          <div style={{ fontSize: 12, color: '#c00', textAlign: 'center', marginBottom: 10 }}>
+            {resetError}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => {
+              setResetOpen(false)
+              setResetText('')
+              setResetError('')
+            }}
+            style={{
+              flex: 1,
+              background: '#f5f5f5',
+              color: '#333',
+              border: '0.5px solid #e0e0e0',
+              borderRadius: 10,
+              padding: '12px 14px',
+              fontSize: 14,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Отмена
+          </button>
+          <button
+            onClick={() => doReset()}
+            disabled={isResetting || resetText !== RESET_PHRASE}
+            style={{
+              flex: 1,
+              background: resetText === RESET_PHRASE ? '#c00' : '#e0e0e0',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              padding: '12px 14px',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: resetText === RESET_PHRASE && !isResetting ? 'pointer' : 'not-allowed',
+              fontFamily: 'inherit',
+            }}
+          >
+            {isResetting ? 'Сбрасываем…' : 'Сбросить'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   const canOpen = allFilled
   const openToggle = isAdmin && (
@@ -819,6 +951,16 @@ export default function GameBoardPage() {
                 <path d="M10 4v12M4 10h12" />
               </svg>
             </button>
+            <button
+              className="tgh-action"
+              onClick={() => setResetOpen(true)}
+              title="Сбросить игру"
+            >
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8">
+                <path d="M4 10a6 6 0 1 0 1.76-4.24" />
+                <path d="M4 4v3.5h3.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
             <button className="tgh-action" onClick={handleDelete} disabled={isDeleting} title="Удалить игру">
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="1.8">
                 <path d="M5 7h10l-1 9H6L5 7z" />
@@ -831,6 +973,7 @@ export default function GameBoardPage() {
 
       {openToggle}
       {claimsModal}
+      {resetModal}
       {miniGame && gameId && (
         <MiniGameOverlay
           miniGame={miniGame}

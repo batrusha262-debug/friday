@@ -645,8 +645,10 @@ export default function GameBoardPage() {
     </div>
   )
 
-  // Lobby: waiting for players
-  if (game?.status === 'waiting') {
+  // Lobby: waiting for players.
+  // Admin sees the question-filling board first; the lobby appears once all
+  // questions are filled.
+  if (game?.status === 'waiting' && (!isAdmin || allFilled)) {
     return (
       <div className="page">
         <div className="tgh">

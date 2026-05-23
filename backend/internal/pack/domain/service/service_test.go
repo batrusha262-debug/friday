@@ -226,6 +226,10 @@ func (r *repoStub) ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (entity.
 	return entity.MiniGame{}, nil
 }
 
+func (r *repoStub) ListActiveLobbies(context.Context) ([]entity.Lobby, error) {
+	return nil, nil
+}
+
 var errNoMiniGame = errors.New("no active mini game")
 
 // compile-time check

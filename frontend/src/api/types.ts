@@ -101,6 +101,14 @@ export interface MiniGame {
   finished_at?: string
 }
 
+export interface Lobby {
+  game_id: string
+  pack_id: string
+  pack_title: string
+  team_count: number
+  is_open: boolean
+}
+
 export interface GameBoard {
   teams: GameTeam[]
   states: GameQuestionState[]

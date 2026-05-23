@@ -6,6 +6,7 @@ import type {
   GameBoard,
   GameQuestionState,
   GameTeam,
+  Lobby,
   MiniGame,
   Pack,
   Question,
@@ -198,3 +199,7 @@ export const claimAnswer = (gameId: string, questionId: string, teamId: string) 
 
 export const validateClaim = (claimId: string, approved: boolean) =>
   api.post<AnswerClaim>(`/admin/claims/${claimId}/validate`, { approved })
+
+// Lobbies
+export const listActiveLobbies = () =>
+  api.get<Lobby[]>('/admin/lobbies')

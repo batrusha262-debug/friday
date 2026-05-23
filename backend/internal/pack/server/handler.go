@@ -70,6 +70,8 @@ type Service interface {
 	ValidateClaim(context.Context, uuid.UUID, bool) (values.AnswerClaim, error)
 
 	ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (values.MiniGame, error)
+
+	ListActiveLobbies(context.Context) ([]values.Lobby, error)
 }
 
 type contextKey string
@@ -149,6 +151,8 @@ func (h *Handler) Register(r chi.Router) {
 			r.Post("/games/{gameID}/questions/{questionID}/open", httpx.Handler(h.openQuestion))
 			r.Post("/games/{gameID}/questions/{questionID}/reveal", httpx.Handler(h.revealNextOption))
 			r.Post("/games/{gameID}/questions/{questionID}/timer", httpx.Handler(h.startQuestionTimer))
+
+			r.Get("/lobbies", httpx.Handler(h.listActiveLobbies))
 		})
 	})
 }

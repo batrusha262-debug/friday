@@ -259,6 +259,88 @@ func (r *PgRepository) FinishGame(ctx context.Context, id uuid.UUID) (entity.Gam
 	return e, nil
 }
 
+func (r *PgRepository) ResetGameProgress(ctx context.Context, id uuid.UUID) (entity.Game, error) {
+	if _, err := r.db.Exec(ctx,
+		`
+		DELETE FROM game_question_states
+		WHERE game_id = $1
+		`,
+		id,
+	); err != nil {
+		return entity.Game{}, fmt.Errorf("reset game progress: delete question states: %w", err)
+	}
+
+	if _, err := r.db.Exec(ctx,
+		`
+		DELETE FROM game_answer_claims
+		WHERE game_id = $1
+		`,
+		id,
+	); err != nil {
+		return entity.Game{}, fmt.Errorf("reset game progress: delete claims: %w", err)
+	}
+
+	if _, err := r.db.Exec(ctx,
+		`
+		DELETE FROM mini_games
+		WHERE game_id = $1
+		`,
+		id,
+	); err != nil {
+		return entity.Game{}, fmt.Errorf("reset game progress: delete mini games: %w", err)
+	}
+
+	if _, err := r.db.Exec(ctx,
+		`
+		UPDATE game_teams
+		SET score = 0
+		WHERE game_id = $1
+		`,
+		id,
+	); err != nil {
+		return entity.Game{}, fmt.Errorf("reset game progress: reset team scores: %w", err)
+	}
+
+	rows, err := r.db.Query(ctx,
+		`
+		UPDATE games
+		SET
+		    status              = 'waiting',
+		    started_at          = NULL,
+		    finished_at         = NULL,
+		    current_picker_id   = NULL,
+		    current_question_id = NULL
+		WHERE id = $1
+		RETURNING
+		    id,
+		    pack_id,
+		    host_id,
+		    status,
+		    is_open,
+		    created_at,
+		    started_at,
+		    finished_at,
+		    current_picker_id,
+		    current_question_id
+		`,
+		id,
+	)
+	if err != nil {
+		return entity.Game{}, fmt.Errorf("reset game progress: %w", err)
+	}
+
+	e, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.Game])
+	if err != nil {
+		if pgerr.IsNotFound(err) {
+			return entity.Game{}, pgerr.NotFound("game not found")
+		}
+
+		return entity.Game{}, fmt.Errorf("reset game progress: %w", err)
+	}
+
+	return e, nil
+}
+
 func (r *PgRepository) ClaimAnswer(ctx context.Context, gameID, questionID, teamID uuid.UUID) (entity.AnswerClaim, error) {
 	rows, err := r.db.Query(ctx,
 		`

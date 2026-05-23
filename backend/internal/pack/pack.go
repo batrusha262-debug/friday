@@ -52,6 +52,7 @@ type Repository interface {
 	DeleteGame(context.Context, uuid.UUID) error
 	StartGame(context.Context, uuid.UUID) (entity.Game, error)
 	FinishGame(context.Context, uuid.UUID) (entity.Game, error)
+	ResetGameProgress(context.Context, uuid.UUID) (entity.Game, error)
 	SetGameOpen(context.Context, uuid.UUID, bool) (entity.Game, error)
 
 	AddGameTeam(context.Context, uuid.UUID, string) (entity.GameTeam, error)

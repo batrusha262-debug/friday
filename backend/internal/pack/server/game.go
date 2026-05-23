@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"git.appkode.ru/pub/go/failure"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
@@ -112,6 +113,34 @@ func (h *Handler) finishGame(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	g, err := h.svc.FinishGame(r.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, g)
+	h.broadcastGameState(r.Context(), id)
+
+	return nil
+}
+
+func (h *Handler) resetGame(w http.ResponseWriter, r *http.Request) error {
+	id, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	var req struct {
+		Confirm string `json:"confirm"`
+	}
+	if err = decode(r, &req); err != nil {
+		return err
+	}
+
+	if req.Confirm != "67 крутой мем" {
+		return failure.NewInvalidArgumentError("invalid confirmation phrase")
+	}
+
+	g, err := h.svc.ResetGame(r.Context(), id)
 	if err != nil {
 		return err
 	}

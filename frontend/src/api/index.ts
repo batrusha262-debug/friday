@@ -127,6 +127,9 @@ export const startGame = (gameId: string) =>
 export const finishGame = (gameId: string) =>
   api.post<Game>(`/admin/games/${gameId}/finish`, {})
 
+export const resetGame = (gameId: string, confirm: string) =>
+  api.post<Game>(`/admin/games/${gameId}/reset`, { confirm })
+
 export const setGameOpen = (gameId: string, open: boolean) =>
   api.patch<Game>(`/admin/games/${gameId}/open`, { open })
 

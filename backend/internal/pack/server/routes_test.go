@@ -114,6 +114,10 @@ func (s *stubService) FinishGame(context.Context, uuid.UUID) (values.Game, error
 	return values.Game{}, errors.New("stub")
 }
 
+func (s *stubService) ResetGame(context.Context, uuid.UUID) (values.Game, error) {
+	return values.Game{}, errors.New("stub")
+}
+
 func (s *stubService) SetGameOpen(context.Context, uuid.UUID, bool) (values.Game, error) {
 	return values.Game{}, errors.New("stub")
 }

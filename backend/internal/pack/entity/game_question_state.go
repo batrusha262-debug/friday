@@ -9,11 +9,14 @@ import (
 )
 
 type GameQuestionState struct {
-	ID         uuid.UUID         `db:"id"`
-	GameID     values.GameID     `db:"game_id"`
-	QuestionID values.QuestionID `db:"question_id"`
-	AnsweredBy *uuid.UUID        `db:"answered_by"`
-	AnsweredAt *time.Time        `db:"answered_at"`
+	ID             uuid.UUID         `db:"id"`
+	GameID         values.GameID     `db:"game_id"`
+	QuestionID     values.QuestionID `db:"question_id"`
+	AnsweredBy     *uuid.UUID        `db:"answered_by"`
+	AnsweredAt     *time.Time        `db:"answered_at"`
+	RevealedCount  int16             `db:"revealed_count"`
+	TimerStartedAt *time.Time        `db:"timer_started_at"`
+	WrongOptions   []int16           `db:"wrong_options"`
 }
 
 func (e GameQuestionState) ToDomain() values.GameQuestionState {
@@ -25,10 +28,13 @@ func (e GameQuestionState) ToDomain() values.GameQuestionState {
 	}
 
 	return values.GameQuestionState{
-		ID:         e.ID,
-		GameID:     e.GameID,
-		QuestionID: e.QuestionID,
-		AnsweredBy: answeredBy,
-		AnsweredAt: e.AnsweredAt,
+		ID:             e.ID,
+		GameID:         e.GameID,
+		QuestionID:     e.QuestionID,
+		AnsweredBy:     answeredBy,
+		AnsweredAt:     e.AnsweredAt,
+		RevealedCount:  e.RevealedCount,
+		TimerStartedAt: e.TimerStartedAt,
+		WrongOptions:   e.WrongOptions,
 	}
 }

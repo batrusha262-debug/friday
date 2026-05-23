@@ -151,10 +151,33 @@ export const answerQuestion = (
   questionId: string,
   teamId: string | null,
   wrongTeamId?: string | null,
+  optionIdx?: number | null,
 ) =>
   api.post<GameQuestionState>(
     `/admin/games/${gameId}/questions/${questionId}/answer`,
-    { team_id: teamId, wrong_team_id: wrongTeamId ?? null },
+    {
+      team_id: teamId,
+      wrong_team_id: wrongTeamId ?? null,
+      option_idx: optionIdx ?? null,
+    },
+  )
+
+export const openQuestion = (gameId: string, questionId: string) =>
+  api.post<GameQuestionState>(
+    `/admin/games/${gameId}/questions/${questionId}/open`,
+    {},
+  )
+
+export const revealNextOption = (gameId: string, questionId: string) =>
+  api.post<GameQuestionState>(
+    `/admin/games/${gameId}/questions/${questionId}/reveal`,
+    {},
+  )
+
+export const startQuestionTimer = (gameId: string, questionId: string) =>
+  api.post<GameQuestionState>(
+    `/admin/games/${gameId}/questions/${questionId}/timer`,
+    {},
   )
 
 export const claimMiniGame = (

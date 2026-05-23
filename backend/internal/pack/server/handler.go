@@ -61,7 +61,10 @@ type Service interface {
 	RemoveGameTeam(context.Context, uuid.UUID) error
 
 	GetBoard(context.Context, uuid.UUID) (values.GameBoard, error)
-	AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID) (values.GameQuestionState, error)
+	AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID, *int16) (values.GameQuestionState, error)
+	OpenQuestion(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
+	RevealNextOption(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
+	StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
 
 	ClaimAnswer(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (values.AnswerClaim, error)
 	ValidateClaim(context.Context, uuid.UUID, bool) (values.AnswerClaim, error)
@@ -142,6 +145,10 @@ func (h *Handler) Register(r chi.Router) {
 
 			r.Post("/games/{gameID}/teams", httpx.Handler(h.addTeam))
 			r.Delete("/teams/{teamID}", httpx.Handler(h.removeTeam))
+
+			r.Post("/games/{gameID}/questions/{questionID}/open", httpx.Handler(h.openQuestion))
+			r.Post("/games/{gameID}/questions/{questionID}/reveal", httpx.Handler(h.revealNextOption))
+			r.Post("/games/{gameID}/questions/{questionID}/timer", httpx.Handler(h.startQuestionTimer))
 		})
 	})
 }

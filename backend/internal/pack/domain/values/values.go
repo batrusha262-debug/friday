@@ -78,11 +78,14 @@ type GameTeam struct {
 }
 
 type GameQuestionState struct {
-	ID         uuid.UUID   `json:"id"`
-	GameID     GameID      `json:"game_id"`
-	QuestionID QuestionID  `json:"question_id"`
-	AnsweredBy *GameTeamID `json:"answered_by,omitempty"`
-	AnsweredAt *time.Time  `json:"answered_at,omitempty"`
+	ID             uuid.UUID   `json:"id"`
+	GameID         GameID      `json:"game_id"`
+	QuestionID     QuestionID  `json:"question_id"`
+	AnsweredBy     *GameTeamID `json:"answered_by,omitempty"`
+	AnsweredAt     *time.Time  `json:"answered_at,omitempty"`
+	RevealedCount  int16       `json:"revealed_count"`
+	TimerStartedAt *time.Time  `json:"timer_started_at,omitempty"`
+	WrongOptions   []int16     `json:"wrong_options"`
 }
 
 type AnswerClaim struct {

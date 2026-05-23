@@ -138,7 +138,19 @@ func (s *stubService) GetBoard(context.Context, uuid.UUID) (values.GameBoard, er
 	return values.GameBoard{}, errors.New("stub")
 }
 
-func (s *stubService) AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID) (values.GameQuestionState, error) {
+func (s *stubService) AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID, *int16) (values.GameQuestionState, error) {
+	return values.GameQuestionState{}, errors.New("stub")
+}
+
+func (s *stubService) OpenQuestion(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error) {
+	return values.GameQuestionState{}, errors.New("stub")
+}
+
+func (s *stubService) RevealNextOption(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error) {
+	return values.GameQuestionState{}, errors.New("stub")
+}
+
+func (s *stubService) StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error) {
 	return values.GameQuestionState{}, errors.New("stub")
 }
 

@@ -181,6 +181,12 @@ export const startQuestionTimer = (gameId: string, questionId: string) =>
     {},
   )
 
+export const selectQuestion = (gameId: string, questionId: string) =>
+  api.post<GameQuestionState>(
+    `/admin/games/${gameId}/questions/${questionId}/select`,
+    {},
+  )
+
 export const claimMiniGame = (
   gameId: string,
   miniGameId: string,

@@ -57,6 +57,7 @@ export interface Game {
   started_at?: string
   finished_at?: string
   current_picker_id?: string
+  current_question_id?: string
 }
 
 export interface GameTeam {

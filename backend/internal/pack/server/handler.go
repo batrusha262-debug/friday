@@ -63,6 +63,7 @@ type Service interface {
 	GetBoard(context.Context, uuid.UUID) (values.GameBoard, error)
 	AnswerQuestion(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID, *uuid.UUID, *int16) (values.GameQuestionState, error)
 	OpenQuestion(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
+	SelectQuestion(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
 	RevealNextOption(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
 	StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (values.GameQuestionState, error)
 
@@ -114,6 +115,7 @@ func (h *Handler) Register(r chi.Router) {
 		r.Get("/games/{gameID}/events", httpx.Handler(h.gameEvents))
 		r.Post("/games/{gameID}/questions/{questionID}/answer", httpx.Handler(h.answerQuestion))
 		r.Post("/games/{gameID}/questions/{questionID}/claim", httpx.Handler(h.claimAnswer))
+		r.Post("/games/{gameID}/questions/{questionID}/select", httpx.Handler(h.selectQuestion))
 		r.Post("/games/{gameID}/mini-games/{miniGameID}/claim", httpx.Handler(h.claimMiniGame))
 		r.Post("/games/{gameID}/join", httpx.Handler(h.joinGame))
 

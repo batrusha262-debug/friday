@@ -60,6 +60,7 @@ type Repository interface {
 	AwardTeamPoints(context.Context, uuid.UUID, int) error
 
 	SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error
+	SetCurrentQuestion(context.Context, uuid.UUID, *uuid.UUID) error
 
 	MarkQuestionAnswered(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.GameQuestionState, error)
 	EnsureQuestionState(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)

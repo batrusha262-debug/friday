@@ -415,6 +415,19 @@ export default function GameBoardPage() {
 
   const autoJoinedRef = useRef(false)
 
+  useEffect(() => {
+    if (!isAdmin || !gameId) return
+    const qid = game?.current_question_id
+    const key = `game:${gameId}:lastFollowedQuestion`
+    if (!qid) {
+      sessionStorage.removeItem(key)
+      return
+    }
+    if (sessionStorage.getItem(key) === qid) return
+    sessionStorage.setItem(key, qid)
+    navigate(`/game/${gameId}/question/${qid}`)
+  }, [isAdmin, gameId, game?.current_question_id, navigate])
+
   // Guest auto-joins as a team on entering an open waiting lobby
   useEffect(() => {
     if (isAdmin || !gameId || !game) return

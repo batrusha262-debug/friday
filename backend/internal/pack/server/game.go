@@ -330,6 +330,28 @@ func (h *Handler) answerQuestion(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (h *Handler) selectQuestion(w http.ResponseWriter, r *http.Request) error {
+	gameID, err := parseID(r, "gameID")
+	if err != nil {
+		return err
+	}
+
+	questionID, err := parseID(r, "questionID")
+	if err != nil {
+		return err
+	}
+
+	state, err := h.svc.SelectQuestion(r.Context(), gameID, questionID)
+	if err != nil {
+		return err
+	}
+
+	reply.JSON(r.Context(), w, http.StatusOK, state)
+	h.broadcastGameState(r.Context(), gameID)
+
+	return nil
+}
+
 func (h *Handler) openQuestion(w http.ResponseWriter, r *http.Request) error {
 	gameID, err := parseID(r, "gameID")
 	if err != nil {

@@ -171,7 +171,8 @@ func (r *repoStub) OpenQuestionForRace(context.Context, uuid.UUID, uuid.UUID) (e
 	return entity.GameQuestionState{}, nil
 }
 
-func (r *repoStub) SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error { return nil }
+func (r *repoStub) SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error   { return nil }
+func (r *repoStub) SetCurrentQuestion(context.Context, uuid.UUID, *uuid.UUID) error { return nil }
 
 func (r *repoStub) CreateUser(context.Context, string) (entity.User, error) { return entity.User{}, nil }
 func (r *repoStub) ListUsers(context.Context) ([]entity.User, error)         { return nil, nil }

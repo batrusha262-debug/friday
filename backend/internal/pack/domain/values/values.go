@@ -58,15 +58,16 @@ type Question struct {
 }
 
 type Game struct {
-	ID              GameID              `json:"id"`
-	PackID          PackID              `json:"pack_id"`
-	HostID          uuid.UUID           `json:"host_id"`
-	Status          enum.GameStatusEnum `json:"status"`
-	IsOpen          bool                `json:"is_open"`
-	CreatedAt       time.Time           `json:"created_at"`
-	StartedAt       *time.Time          `json:"started_at,omitempty"`
-	FinishedAt      *time.Time          `json:"finished_at,omitempty"`
-	CurrentPickerID *GameTeamID         `json:"current_picker_id,omitempty"`
+	ID                GameID              `json:"id"`
+	PackID            PackID              `json:"pack_id"`
+	HostID            uuid.UUID           `json:"host_id"`
+	Status            enum.GameStatusEnum `json:"status"`
+	IsOpen            bool                `json:"is_open"`
+	CreatedAt         time.Time           `json:"created_at"`
+	StartedAt         *time.Time          `json:"started_at,omitempty"`
+	FinishedAt        *time.Time          `json:"finished_at,omitempty"`
+	CurrentPickerID   *GameTeamID         `json:"current_picker_id,omitempty"`
+	CurrentQuestionID *QuestionID         `json:"current_question_id,omitempty"`
 }
 
 type GameTeam struct {

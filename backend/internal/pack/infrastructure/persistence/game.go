@@ -25,7 +25,8 @@ func (r *PgRepository) CreateGame(ctx context.Context, packID, hostID uuid.UUID)
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		`,
 		packID, hostID,
 	)
@@ -196,7 +197,8 @@ func (r *PgRepository) StartGame(ctx context.Context, id uuid.UUID) (entity.Game
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		`,
 		id,
 	)
@@ -233,7 +235,8 @@ func (r *PgRepository) FinishGame(ctx context.Context, id uuid.UUID) (entity.Gam
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		`,
 		id,
 	)
@@ -368,7 +371,8 @@ func (r *PgRepository) SetGameOpen(ctx context.Context, id uuid.UUID, open bool)
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		`,
 		id, open,
 	)
@@ -399,6 +403,22 @@ func (r *PgRepository) SetCurrentPicker(ctx context.Context, gameID uuid.UUID, t
 	)
 	if err != nil {
 		return fmt.Errorf("set current picker: %w", err)
+	}
+
+	return nil
+}
+
+func (r *PgRepository) SetCurrentQuestion(ctx context.Context, gameID uuid.UUID, questionID *uuid.UUID) error {
+	_, err := r.db.Exec(ctx,
+		`
+		UPDATE games
+		SET current_question_id = $2
+		WHERE id = $1
+		`,
+		gameID, questionID,
+	)
+	if err != nil {
+		return fmt.Errorf("set current question: %w", err)
 	}
 
 	return nil

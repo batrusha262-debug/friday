@@ -268,6 +268,10 @@ func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UU
 			return values.GameQuestionState{}, err
 		}
 
+		if err = s.repo.SetCurrentQuestion(ctx, gameID, nil); err != nil {
+			return values.GameQuestionState{}, err
+		}
+
 		return stateEntity.ToDomain(), nil
 	}
 
@@ -301,6 +305,23 @@ func (s *Service) AnswerQuestion(ctx context.Context, gameID, questionID uuid.UU
 func (s *Service) OpenQuestion(ctx context.Context, gameID, questionID uuid.UUID) (values.GameQuestionState, error) {
 	e, err := s.repo.EnsureQuestionState(ctx, gameID, questionID)
 	if err != nil {
+		return values.GameQuestionState{}, err
+	}
+
+	if err = s.repo.SetCurrentQuestion(ctx, gameID, &questionID); err != nil {
+		return values.GameQuestionState{}, err
+	}
+
+	return e.ToDomain(), nil
+}
+
+func (s *Service) SelectQuestion(ctx context.Context, gameID, questionID uuid.UUID) (values.GameQuestionState, error) {
+	e, err := s.repo.EnsureQuestionState(ctx, gameID, questionID)
+	if err != nil {
+		return values.GameQuestionState{}, err
+	}
+
+	if err = s.repo.SetCurrentQuestion(ctx, gameID, &questionID); err != nil {
 		return values.GameQuestionState{}, err
 	}
 

@@ -9,6 +9,7 @@ import {
   getGame,
   openQuestion,
   revealNextOption,
+  selectQuestion,
   startQuestionTimer,
 } from '../api'
 import { useAuth } from '../App'
@@ -76,6 +77,11 @@ export default function QuestionPage() {
     ensureOpen.mutate()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, state?.id])
+
+  useEffect(() => {
+    if (!gameId || !questionId || isAdmin) return
+    selectQuestion(gameId, questionId).catch(() => {})
+  }, [gameId, questionId, isAdmin])
 
   useEffect(() => {
     if (!state?.timer_started_at) return

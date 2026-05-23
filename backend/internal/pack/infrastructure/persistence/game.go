@@ -58,7 +58,8 @@ func (r *PgRepository) GetGame(ctx context.Context, id uuid.UUID) (entity.Game, 
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		FROM
 		    games
 		WHERE id = $1
@@ -93,7 +94,8 @@ func (r *PgRepository) FindGameByCode(ctx context.Context, code string) (entity.
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		FROM
 		    games
 		WHERE (lower($1) = 'aaaaaaaa' OR lower(id::text) LIKE lower($1) || '%')
@@ -132,7 +134,8 @@ func (r *PgRepository) FindLatestGameByPack(ctx context.Context, packID uuid.UUI
 		    created_at,
 		    started_at,
 		    finished_at,
-		    current_picker_id
+		    current_picker_id,
+		    current_question_id
 		FROM
 		    games
 		WHERE pack_id = $1

@@ -437,7 +437,13 @@ export default function GameBoardPage() {
     if (isAdmin || !gameId || !game) return
     if (game.status !== 'waiting' || !game.is_open) return
     if (autoJoinedRef.current) return
-    if (localStorage.getItem(`game:${gameId}:teamId`)) return
+
+    const storedTeamId = localStorage.getItem(`game:${gameId}:teamId`)
+    if (storedTeamId && teams.some(t => t.id === storedTeamId)) return
+    if (storedTeamId) {
+      localStorage.removeItem(`game:${gameId}:teamId`)
+      autoJoinedRef.current = false
+    }
 
     const myName = localStorage.getItem('userName')?.trim()
 
@@ -453,7 +459,7 @@ export default function GameBoardPage() {
         autoJoinedRef.current = false
         setJoinError(err instanceof Error ? err.message : 'Не удалось присоединиться')
       })
-  }, [isAdmin, gameId, game, qc])
+  }, [isAdmin, gameId, game, teams, qc])
 
   const { mutate: doStart, isPending: isStarting } = useMutation({
     mutationFn: () => startGame(gameId!),

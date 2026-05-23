@@ -143,6 +143,38 @@ func (r *PgRepository) RevealNextOption(ctx context.Context, gameID, questionID 
 	return e, nil
 }
 
+func (r *PgRepository) OpenQuestionForRace(ctx context.Context, gameID, questionID uuid.UUID) (entity.GameQuestionState, error) {
+	rows, err := r.db.Query(ctx,
+		`
+		INSERT INTO game_question_states (game_id, question_id, revealed_count, timer_started_at)
+		VALUES ($1, $2, 4, now())
+		ON CONFLICT (game_id, question_id) DO UPDATE
+		    SET revealed_count = 4,
+		        timer_started_at = now()
+		RETURNING
+		    id,
+		    game_id,
+		    question_id,
+		    answered_by,
+		    answered_at,
+		    revealed_count,
+		    timer_started_at,
+		    wrong_options
+		`,
+		gameID, questionID,
+	)
+	if err != nil {
+		return entity.GameQuestionState{}, fmt.Errorf("open question for race: %w", err)
+	}
+
+	e, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.GameQuestionState])
+	if err != nil {
+		return entity.GameQuestionState{}, fmt.Errorf("open question for race: %w", err)
+	}
+
+	return e, nil
+}
+
 func (r *PgRepository) StartQuestionTimer(ctx context.Context, gameID, questionID uuid.UUID) (entity.GameQuestionState, error) {
 	rows, err := r.db.Query(ctx,
 		`

@@ -65,6 +65,7 @@ type Repository interface {
 	EnsureQuestionState(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
 	RecordWrongOption(context.Context, uuid.UUID, uuid.UUID, int16) (entity.GameQuestionState, error)
 	RevealNextOption(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
+	OpenQuestionForRace(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
 	StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error)
 	ListGameQuestionStates(context.Context, uuid.UUID) ([]entity.GameQuestionState, error)
 

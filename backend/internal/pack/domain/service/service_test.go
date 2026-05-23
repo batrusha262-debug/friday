@@ -167,6 +167,10 @@ func (r *repoStub) StartQuestionTimer(context.Context, uuid.UUID, uuid.UUID) (en
 	return entity.GameQuestionState{}, nil
 }
 
+func (r *repoStub) OpenQuestionForRace(context.Context, uuid.UUID, uuid.UUID) (entity.GameQuestionState, error) {
+	return entity.GameQuestionState{}, nil
+}
+
 func (r *repoStub) SetCurrentPicker(context.Context, uuid.UUID, *uuid.UUID) error { return nil }
 
 func (r *repoStub) CreateUser(context.Context, string) (entity.User, error) { return entity.User{}, nil }

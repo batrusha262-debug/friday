@@ -105,6 +105,14 @@ type GameBoard struct {
 	MiniGame      *MiniGame           `json:"mini_game,omitempty"`
 }
 
+type Lobby struct {
+	GameID    GameID `json:"game_id"`
+	PackID    PackID `json:"pack_id"`
+	PackTitle string `json:"pack_title"`
+	TeamCount int    `json:"team_count"`
+	IsOpen    bool   `json:"is_open"`
+}
+
 type MiniGame struct {
 	ID             uuid.UUID  `json:"id"`
 	GameID         GameID     `json:"game_id"`

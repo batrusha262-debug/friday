@@ -76,4 +76,6 @@ type Repository interface {
 	CreateMiniGame(context.Context, uuid.UUID, uuid.UUID, *uuid.UUID) (entity.MiniGame, error)
 	GetActiveMiniGame(context.Context, uuid.UUID) (entity.MiniGame, error)
 	ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (entity.MiniGame, error)
+
+	ListActiveLobbies(context.Context) ([]entity.Lobby, error)
 }

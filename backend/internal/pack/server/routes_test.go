@@ -166,6 +166,10 @@ func (s *stubService) ClaimMiniGame(context.Context, uuid.UUID, uuid.UUID) (valu
 	return values.MiniGame{}, errors.New("stub")
 }
 
+func (s *stubService) ListActiveLobbies(context.Context) ([]values.Lobby, error) {
+	return nil, errors.New("stub")
+}
+
 func (s *stubService) CreateUser(context.Context, string) (values.User, error) {
 	return values.User{}, errors.New("stub")
 }

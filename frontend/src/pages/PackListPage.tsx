@@ -6,11 +6,12 @@ import {
   deletePack,
   findGameByCode,
   getGameByPack,
+  listActiveLobbies,
   listPacks,
   logout,
 } from '../api'
 import { useAuth } from '../App'
-import type { Pack } from '../api/types'
+import type { Lobby, Pack } from '../api/types'
 
 function packBadge(pack: Pack, isAdmin: boolean) {
   if (!isAdmin) {
@@ -41,6 +42,31 @@ export default function PackListPage() {
   const [joining, setJoining] = useState(false)
   const [joinModal, setJoinModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [dismissedLobbies, setDismissedLobbies] = useState<Set<string>>(new Set())
+
+  const lobbiesQuery = useQuery({
+    queryKey: ['lobbies'],
+    queryFn: listActiveLobbies,
+    enabled: isAdmin,
+    refetchInterval: 3000,
+  })
+
+  const activeLobby: Lobby | null = isAdmin
+    ? (lobbiesQuery.data ?? []).find(l => !dismissedLobbies.has(l.game_id)) ?? null
+    : null
+
+  function handleEnterLobby(lobby: Lobby) {
+    localStorage.setItem(`pack:${lobby.pack_id}:gameId`, lobby.game_id)
+    navigate(`/game/${lobby.game_id}`)
+  }
+
+  function handleDismissLobby(gameId: string) {
+    setDismissedLobbies(prev => {
+      const next = new Set(prev)
+      next.add(gameId)
+      return next
+    })
+  }
 
   async function handleDeletePack(pack: Pack, e: React.MouseEvent) {
     e.stopPropagation()
@@ -131,6 +157,55 @@ export default function PackListPage() {
 
   return (
     <div className="page">
+      {activeLobby && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 200,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: 16, padding: 20, width: '100%', maxWidth: 360 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 8 }}>👋</div>
+            <div style={{ fontSize: 17, fontWeight: 600, textAlign: 'center', marginBottom: 4 }}>
+              Игроки в лобби
+            </div>
+            <div style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 6 }}>
+              «{activeLobby.pack_title}»
+            </div>
+            <div style={{ fontSize: 13, color: '#999', textAlign: 'center', marginBottom: 16 }}>
+              К игре присоединились {activeLobby.team_count}{' '}
+              {pluralize(activeLobby.team_count, 'команда', 'команды', 'команд')} — перейти?
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                className="tbtn-ghost"
+                style={{ flex: 1 }}
+                onClick={() => handleDismissLobby(activeLobby.game_id)}
+              >
+                Позже
+              </button>
+              <button
+                type="button"
+                className="tbtn"
+                style={{ flex: 1 }}
+                onClick={() => handleEnterLobby(activeLobby)}
+              >
+                Перейти →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="tgh">
         <span style={{ position: 'absolute', left: 0, right: 0, textAlign: 'center', letterSpacing: 3, fontSize: 12, fontWeight: 400, color: '#fff', textTransform: 'uppercase', pointerEvents: 'none' }}>KODE</span>
         <div style={{ display: 'flex', gap: 4 }}>

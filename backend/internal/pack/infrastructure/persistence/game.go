@@ -290,16 +290,6 @@ func (r *PgRepository) ResetGameProgress(ctx context.Context, id uuid.UUID) (ent
 		return entity.Game{}, fmt.Errorf("reset game progress: delete mini games: %w", err)
 	}
 
-	if _, err := r.db.Exec(ctx,
-		`
-		DELETE FROM game_teams
-		WHERE game_id = $1
-		`,
-		id,
-	); err != nil {
-		return entity.Game{}, fmt.Errorf("reset game progress: delete teams: %w", err)
-	}
-
 	rows, err := r.db.Query(ctx,
 		`
 		UPDATE games
@@ -335,6 +325,16 @@ func (r *PgRepository) ResetGameProgress(ctx context.Context, id uuid.UUID) (ent
 		}
 
 		return entity.Game{}, fmt.Errorf("reset game progress: %w", err)
+	}
+
+	if _, err := r.db.Exec(ctx,
+		`
+		DELETE FROM game_teams
+		WHERE game_id = $1
+		`,
+		id,
+	); err != nil {
+		return entity.Game{}, fmt.Errorf("reset game progress: delete teams: %w", err)
 	}
 
 	return e, nil

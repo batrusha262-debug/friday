@@ -154,7 +154,7 @@ func (h *Handler) Register(r chi.Router) {
 			r.Patch("/games/{gameID}/open", httpx.Handler(h.setGameOpen))
 
 			r.Post("/games/{gameID}/teams", httpx.Handler(h.addTeam))
-			r.Delete("/teams/{teamID}", httpx.Handler(h.removeTeam))
+			r.Delete("/games/{gameID}/teams/{teamID}", httpx.Handler(h.removeTeam))
 
 			r.Post("/games/{gameID}/questions/{questionID}/open", httpx.Handler(h.openQuestion))
 			r.Post("/games/{gameID}/questions/{questionID}/reveal", httpx.Handler(h.revealNextOption))

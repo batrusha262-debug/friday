@@ -251,7 +251,7 @@ func TestRegister_allRoutesReachable(t *testing.T) {
 
 		{http.MethodPost, "/admin/games/" + id + "/teams"},
 		{http.MethodGet, "/admin/games/" + id + "/teams"},
-		{http.MethodDelete, "/admin/teams/" + id},
+		{http.MethodDelete, "/admin/games/" + id + "/teams/" + id},
 
 		{http.MethodGet, "/admin/games/" + id + "/board"},
 		{http.MethodPost, "/admin/games/" + id + "/questions/" + id + "/answer"},

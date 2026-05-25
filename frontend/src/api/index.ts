@@ -143,8 +143,8 @@ export const joinGame = (gameId: string, name: string) =>
 export const listTeams = (gameId: string) =>
   api.get<GameTeam[]>(`/admin/games/${gameId}/teams`)
 
-export const removeTeam = (teamId: string) =>
-  api.delete(`/admin/teams/${teamId}`)
+export const removeTeam = (gameId: string, teamId: string) =>
+  api.delete(`/admin/games/${gameId}/teams/${teamId}`)
 
 // Board
 export const getBoard = (gameId: string) =>

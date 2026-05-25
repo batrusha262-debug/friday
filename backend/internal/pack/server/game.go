@@ -222,16 +222,22 @@ func (h *Handler) listTeams(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) removeTeam(w http.ResponseWriter, r *http.Request) error {
-	id, err := parseID(r, "teamID")
+	gameID, err := parseID(r, "gameID")
 	if err != nil {
 		return err
 	}
 
-	if err = h.svc.RemoveGameTeam(r.Context(), id); err != nil {
+	teamID, err := parseID(r, "teamID")
+	if err != nil {
+		return err
+	}
+
+	if err = h.svc.RemoveGameTeam(r.Context(), teamID); err != nil {
 		return err
 	}
 
 	reply.NoContent(w)
+	h.broadcastGameState(r.Context(), gameID)
 
 	return nil
 }

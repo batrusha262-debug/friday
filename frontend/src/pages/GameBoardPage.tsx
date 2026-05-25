@@ -15,6 +15,7 @@ import {
   joinGame,
   claimMiniGame,
   resetGame,
+  removeTeam,
 } from '../api'
 import { useGameEvents } from '../hooks/useGameEvents'
 import { useAuth } from '../App'
@@ -503,6 +504,19 @@ export default function GameBoardPage() {
     },
   })
 
+  const { mutate: doKickTeam, isPending: isKicking, variables: kickingVars } = useMutation({
+    mutationFn: (teamId: string) => removeTeam(gameId!, teamId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['board', gameId] })
+    },
+  })
+
+  function handleKickTeam(teamId: string, name: string) {
+    if (!window.confirm(`Удалить «${name}» из комнаты ожидания?`)) return
+    doKickTeam(teamId)
+  }
+
+
   async function handleDelete() {
     if (!window.confirm('Удалить игру? Это действие нельзя отменить.')) return
     const packId = game?.pack_id
@@ -892,7 +906,28 @@ export default function GameBoardPage() {
                   >
                     {team.name.charAt(0).toUpperCase()}
                   </div>
-                  <span style={{ fontSize: 15, color: '#1a1a1a' }}>{team.name}</span>
+                  <span style={{ fontSize: 15, color: '#1a1a1a', flex: 1 }}>{team.name}</span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleKickTeam(team.id, team.name)}
+                      disabled={isKicking && kickingVars === team.id}
+                      title="Удалить команду"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 6,
+                        cursor: 'pointer',
+                        color: '#c00',
+                        opacity: isKicking && kickingVars === team.id ? 0.4 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M5 5l10 10M15 5L5 15" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               ))
             )}

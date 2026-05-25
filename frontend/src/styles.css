@@ -28,7 +28,7 @@ html, body, #root {
 .tgh {
   background: var(--c-dark);
   color: #fff;
-  padding: 13px 16px;
+  padding: calc(13px + var(--tg-content-safe-top, env(safe-area-inset-top, 0px))) 16px 13px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -38,6 +38,7 @@ html, body, #root {
   position: sticky;
   top: 0;
   z-index: 10;
+  min-height: calc(48px + var(--tg-content-safe-top, env(safe-area-inset-top, 0px)));
 }
 .tgh-back { cursor: pointer; display: flex; align-items: center; color: #fff; background: none; border: none; padding: 0; }
 .tgh-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

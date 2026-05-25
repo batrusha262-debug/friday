@@ -74,12 +74,13 @@ type contextKey string
 const authUserKey contextKey = "auth_user"
 
 type Handler struct {
-	svc Service
-	hub *ws.Hub
+	svc      Service
+	hub      *ws.Hub
+	presence *ws.Presence
 }
 
-func NewHandler(svc Service, hub *ws.Hub) *Handler {
-	return &Handler{svc: svc, hub: hub}
+func NewHandler(svc Service, hub *ws.Hub, presence *ws.Presence) *Handler {
+	return &Handler{svc: svc, hub: hub, presence: presence}
 }
 
 func (h *Handler) Register(r chi.Router) {
@@ -90,6 +91,10 @@ func (h *Handler) Register(r chi.Router) {
 		r.Post("/guest", httpx.Handler(h.guestLogin))
 		r.Post("/logout", httpx.Handler(h.logout))
 	})
+
+	// SSE — EventSource cannot send Authorization headers, so kept public.
+	// Game id is an opaque UUID and the payload mirrors the public board.
+	r.Get("/admin/games/{gameID}/events", httpx.Handler(h.gameEvents))
 
 	r.Route("/admin", func(r chi.Router) {
 		r.Use(h.requireAuth)
@@ -106,7 +111,6 @@ func (h *Handler) Register(r chi.Router) {
 		r.Get("/games/{gameID}", httpx.Handler(h.getGame))
 		r.Get("/games/{gameID}/board", httpx.Handler(h.getBoard))
 		r.Get("/games/{gameID}/teams", httpx.Handler(h.listTeams))
-		r.Get("/games/{gameID}/events", httpx.Handler(h.gameEvents))
 		r.Post("/games/{gameID}/questions/{questionID}/answer", httpx.Handler(h.answerQuestion))
 		r.Post("/games/{gameID}/questions/{questionID}/claim", httpx.Handler(h.claimAnswer))
 		r.Post("/games/{gameID}/mini-games/{miniGameID}/claim", httpx.Handler(h.claimMiniGame))

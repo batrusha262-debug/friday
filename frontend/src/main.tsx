@@ -44,7 +44,6 @@ const tg = window.Telegram?.WebApp
 if (tg) {
   tg.ready?.()
   tg.expand?.()
-  tg.requestFullscreen?.()
   tg.disableVerticalSwipes?.()
   applySafeArea(tg)
   tg.onEvent?.('safeAreaChanged', () => applySafeArea(tg))

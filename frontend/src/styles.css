@@ -28,7 +28,7 @@ html, body, #root {
 .tgh {
   background: var(--c-dark);
   color: #fff;
-  padding: calc(28px + var(--tg-content-safe-top, env(safe-area-inset-top, 0px))) 16px 14px;
+  padding: calc(56px + var(--tg-content-safe-top, env(safe-area-inset-top, 0px))) 16px 16px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -38,11 +38,12 @@ html, body, #root {
   position: sticky;
   top: 0;
   z-index: 10;
-  min-height: calc(72px + var(--tg-content-safe-top, env(safe-area-inset-top, 0px)));
+  min-height: calc(100px + var(--tg-content-safe-top, env(safe-area-inset-top, 0px)));
 }
-.tgh-back { cursor: pointer; display: flex; align-items: center; color: #fff; background: none; border: none; padding: 0; }
+.tgh-back { cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; background: none; border: none; padding: 4px; min-width: 32px; min-height: 32px; }
 .tgh-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tgh-action { margin-left: auto; cursor: pointer; background: none; border: none; color: #fff; display: flex; align-items: center; gap: 6px; }
+.tgh-action { margin-left: auto; cursor: pointer; background: none; border: none; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 4px; min-width: 32px; min-height: 32px; }
+.tgh-back svg, .tgh-action svg { width: 26px !important; height: 26px !important; }
 
 /* ── Cards ───────────────────────────────────── */
 .wcard { background: var(--c-card); margin: 8px; border-radius: 12px; padding: 12px; }

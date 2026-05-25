@@ -203,7 +203,7 @@ func (s *stubService) GetSessionUser(context.Context, string) (values.User, erro
 func (s *stubService) Logout(context.Context, string) error { return errors.New("stub") }
 
 func TestRegister_allRoutesReachable(t *testing.T) {
-	h := server.NewHandler(&stubService{}, nil)
+	h := server.NewHandler(&stubService{}, nil, nil)
 	r := chi.NewRouter()
 	h.Register(r)
 

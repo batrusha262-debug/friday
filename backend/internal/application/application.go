@@ -74,7 +74,7 @@ func (app *Application) Run() error {
 		},
 	)
 
-	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db), m), ws.NewHub())
+	h := packserver.NewHandler(service.NewService(persistence.NewPgRepository(db), m), ws.NewHub(), ws.NewPresence())
 
 	r := chi.NewRouter()
 	r.Use(cors)

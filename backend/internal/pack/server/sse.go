@@ -5,11 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 
+	"friday/internal/pack/domain/enum"
 	"friday/internal/pack/domain/values"
 )
+
+const lobbyKickGrace = 30 * time.Second
 
 type gameStateEvent struct {
 	Game  values.Game      `json:"game"`
@@ -59,6 +63,21 @@ func (h *Handler) gameEvents(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
+	var teamID uuid.UUID
+
+	if raw := r.URL.Query().Get("team_id"); raw != "" {
+		if parsed, parseErr := uuid.Parse(raw); parseErr == nil {
+			teamID = parsed
+		}
+	}
+
+	if teamID != uuid.Nil && h.presence != nil {
+		h.presence.Join(teamID)
+		defer h.presence.Leave(teamID, lobbyKickGrace, func() {
+			h.kickIdleTeam(gameID, teamID)
+		})
+	}
+
 	msg, err := h.buildGameState(r.Context(), gameID)
 	if err != nil {
 		return err
@@ -79,4 +98,23 @@ func (h *Handler) gameEvents(w http.ResponseWriter, r *http.Request) error {
 			return nil
 		}
 	}
+}
+
+func (h *Handler) kickIdleTeam(gameID, teamID uuid.UUID) {
+	ctx := context.Background()
+
+	game, err := h.svc.GetGame(ctx, gameID)
+	if err != nil {
+		return
+	}
+
+	if game.Status.Not(enum.GameStatus.Waiting()) {
+		return
+	}
+
+	if err = h.svc.RemoveGameTeam(ctx, teamID); err != nil {
+		return
+	}
+
+	h.broadcastGameState(ctx, gameID)
 }

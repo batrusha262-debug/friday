@@ -9,12 +9,14 @@ export interface GameStateEvent {
 export function useGameEvents(
   gameId: string,
   onEvent: (state: GameStateEvent) => void,
+  teamId?: string | null,
 ) {
   const cbRef = useRef(onEvent)
   cbRef.current = onEvent
 
   useEffect(() => {
-    const es = new EventSource(`/admin/games/${gameId}/events`)
+    const qs = teamId ? `?team_id=${encodeURIComponent(teamId)}` : ''
+    const es = new EventSource(`/admin/games/${gameId}/events${qs}`)
 
     es.onmessage = (e) => {
       try {
@@ -25,5 +27,5 @@ export function useGameEvents(
     }
 
     return () => es.close()
-  }, [gameId])
+  }, [gameId, teamId])
 }

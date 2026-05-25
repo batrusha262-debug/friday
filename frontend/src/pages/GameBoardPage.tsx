@@ -30,10 +30,11 @@ function useBoardData(gameId: string) {
   const [liveGame, setLiveGame] = useState<Game | null>(null)
   const [liveBoard, setLiveBoard] = useState<GameBoard | null>(null)
 
+  const teamId = localStorage.getItem(`game:${gameId}:teamId`)
   useGameEvents(gameId, (state) => {
     setLiveGame(state.game)
     setLiveBoard(state.board)
-  })
+  }, teamId)
 
   const gameQuery = useQuery({
     queryKey: ['game', gameId],
